@@ -173,21 +173,22 @@ namespace cavapa
                         currForeground = foregroundMat.ToImage<Bgr,byte>();
 
                         Mat moveMat = foregroundMat - prevForeground.Mat;
-                        movement = ((moveMat - .1) * 2.0).ToImage<Bgr, byte>().Convert<Gray,byte>();
-
-                        MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = movement.ToBitmap());
-                        pictureBox1.Invoke(m);
-
-                        //Mat diff = currImage.Not().Mat + prevImage.Mat;
-                        //Image<Bgr, byte> deltaImage = diff.ToImage<Bgr, byte>().Not();
-                        //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = deltaImage.ToBitmap());
-                        //pictureBox1.Invoke(m);
+                        double noiseFloor = 0.2;
+                        movement = ((moveMat - noiseFloor) * 2.0).ToImage<Bgr, byte>().Convert<Gray,byte>();
 
                         prevImage.Bytes = currImage.Bytes;
                         prevForeground.Bytes = currForeground.Bytes;
 
                         Console.WriteLine($"frame: {frameNumber}. Movement: {movement.GetSum().Intensity * 1.0E-3}");
                         frameNumber++;
+
+                        Image<Bgr,byte> moveImg = movement.Convert<Bgr,byte>();
+                        moveImg[0] = new Image<Gray, byte>(width, height); // Make the blue-channel zero
+                        moveImg[2] = new Image<Gray, byte>(width, height); // Make the red-channel zero
+                        MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
+                        //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = moveImg.ToBitmap());
+                        pictureBox1.Invoke(m);
+
                     }
                 }
             }
