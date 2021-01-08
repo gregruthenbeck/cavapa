@@ -157,6 +157,8 @@ namespace cavapa
                     FrameBlender backgroundBuilder = new FrameBlender(width, height, 10);
                     var background = new Image<Bgr, byte>(width, height);
                     var currForeground = new Image<Bgr, byte>(width, height);
+                    var prevForeground = new Image<Bgr, byte>(width, height);
+                    var movement = new Image<Gray, byte>(width, height);
 
                     while (vsd.TryDecodeNextFrame(out var frame))
                     {
@@ -170,7 +172,10 @@ namespace cavapa
                         Mat foregroundMat = background.Not().Mat + currImage.Mat;
                         currForeground = foregroundMat.ToImage<Bgr,byte>();
 
-                        MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = currForeground.ToBitmap());
+                        Mat moveMat = foregroundMat - prevForeground.Mat;
+                        movement = (moveMat * 2.0).ToImage<Bgr, byte>().Convert<Gray,byte>();
+
+                        MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = movement.ToBitmap());
                         pictureBox1.Invoke(m);
 
                         //Mat diff = currImage.Not().Mat + prevImage.Mat;
@@ -179,6 +184,7 @@ namespace cavapa
                         //pictureBox1.Invoke(m);
 
                         prevImage.Bytes = currImage.Bytes;
+                        prevForeground.Bytes = currForeground.Bytes;
 
                         Console.WriteLine($"frame: {frameNumber}");
                         frameNumber++;
