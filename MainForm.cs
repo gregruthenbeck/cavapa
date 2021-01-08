@@ -173,7 +173,7 @@ namespace cavapa
                         currForeground = foregroundMat.ToImage<Bgr,byte>();
 
                         Mat moveMat = foregroundMat - prevForeground.Mat;
-                        movement = (moveMat * 2.0).ToImage<Bgr, byte>().Convert<Gray,byte>();
+                        movement = ((moveMat - .1) * 2.0).ToImage<Bgr, byte>().Convert<Gray,byte>();
 
                         MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = movement.ToBitmap());
                         pictureBox1.Invoke(m);
@@ -186,7 +186,7 @@ namespace cavapa
                         prevImage.Bytes = currImage.Bytes;
                         prevForeground.Bytes = currForeground.Bytes;
 
-                        Console.WriteLine($"frame: {frameNumber}");
+                        Console.WriteLine($"frame: {frameNumber}. Movement: {movement.GetSum().Intensity * 1.0E-3}");
                         frameNumber++;
                     }
                 }
