@@ -116,7 +116,7 @@ namespace cavapa
         private unsafe void DecodeAllFramesToImages(AVHWDeviceType HWDevice)
         {
             // decode all frames from url, please note that it can be a local or remote resource, e.g. string url = "../../sample_mpeg4.mp4";
-            var url = "CameraA_1min.mp4";
+            var url = "CameraB_1min.mp4";
 
             // Search for the sample file by popping dirs until we either find it or run out of pops
             var current = Environment.CurrentDirectory;
@@ -153,46 +153,32 @@ namespace cavapa
                     var height = destinationSize.Height;
 
                     Image<Bgr, byte> prevImage = new Image<Bgr, byte>(width, height); //Image Class from Emgu.CV
+                    int frameBlendInterval = 25;
+                    FrameBlender backgroundBuilder = new FrameBlender(width, height, 10);
+                    var background = new Image<Bgr, byte>(width, height);
+                    var currForeground = new Image<Bgr, byte>(width, height);
 
                     while (vsd.TryDecodeNextFrame(out var frame))
                     {
                         var convertedFrame = vfc.Convert(frame);
 
-                        //using (bitmap = new Bitmap(convertedFrame.width, convertedFrame.height, convertedFrame.linesize[0], PixelFormat.Format24bppRgb, (IntPtr)convertedFrame.data[0]))
-                        //  bitmap.Save($"frame.{frameNumber:D8}.jpg", ImageFormat.Jpeg);
-
-                        // Don't use "using(){}" syntax so that the Bitmap isn't Disposed before it's passed to the MainForm thread
-                        //Bitmap bitmap = new Bitmap(convertedFrame.width, convertedFrame.height, 
-                        //                           convertedFrame.linesize[0], PixelFormat.Format24bppRgb, (IntPtr)convertedFrame.data[0]);
-
                         Image<Bgr, byte> currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
 
-                        Mat diff = currImage.Not().Mat + prevImage.Mat;
-                        Image<Bgr, byte> deltaImage = diff.ToImage<Bgr, byte>().Not();
-                        //deltaImage.Save($"frame.{frameNumber:D8}.jpg", ImageFormat.Jpeg);
+                        if (frameNumber % frameBlendInterval == 0)
+                            background = backgroundBuilder.Update(currImage.Mat).ToImage<Bgr,byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
 
-                        MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = deltaImage.ToBitmap());
+                        Mat foregroundMat = background.Not().Mat + currImage.Mat;
+                        currForeground = foregroundMat.ToImage<Bgr,byte>();
+
+                        MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = currForeground.ToBitmap());
                         pictureBox1.Invoke(m);
 
+                        //Mat diff = currImage.Not().Mat + prevImage.Mat;
+                        //Image<Bgr, byte> deltaImage = diff.ToImage<Bgr, byte>().Not();
+                        //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = deltaImage.ToBitmap());
+                        //pictureBox1.Invoke(m);
+
                         prevImage.Bytes = currImage.Bytes;
-
-                        //using (Graphics g = Graphics.FromImage(bitmap)) {
-                        //    g.FillRectangle(Brushes.Green, 0, 0, 100, 100);
-                        //}
-
-                        //unsafe
-                        //{
-                        //        fixed (byte* curr = currFrameData)
-                        //        fixed (byte* prev = prevFrameData)
-                        //        {
-                        //            bitmap = Process(curr, prev, bitmap.Width, bitmap.Height);
-                        //        }
-                        //        MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = bitmap);
-                        //        pictureBox1.Invoke(m);
-                        //    }
-
-                        //for (uint i = 0; i < currFrameData.Length; i++)
-                        //    prevFrameData[i] = *((byte*)convertedFrame.data[0] + i);
 
                         Console.WriteLine($"frame: {frameNumber}");
                         frameNumber++;

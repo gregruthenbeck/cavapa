@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="FFmpegBinariesHelper.cs" />
     <Compile Include="FFmpegHelper.cs" />
+    <Compile Include="FrameBlender.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -111,6 +112,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
