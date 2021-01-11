@@ -37,12 +37,12 @@ namespace cavapa
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.openVideoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aboutCAVAPAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editMaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toggleVisibilityOfIntermediatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutCAVAPAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -102,37 +102,22 @@ namespace cavapa
             this.openVideoToolStripMenuItem,
             this.closeToolStripMenuItem});
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(54, 32);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(54, 29);
             this.toolStripMenuItem1.Text = "&File";
             // 
             // openVideoToolStripMenuItem
             // 
             this.openVideoToolStripMenuItem.Name = "openVideoToolStripMenuItem";
-            this.openVideoToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.openVideoToolStripMenuItem.Size = new System.Drawing.Size(209, 34);
             this.openVideoToolStripMenuItem.Text = "&Open Video";
             this.openVideoToolStripMenuItem.Click += new System.EventHandler(this.openVideoToolStripMenuItem_Click);
             // 
             // closeToolStripMenuItem
             // 
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(209, 34);
             this.closeToolStripMenuItem.Text = "&Close";
             this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
-            // 
-            // aboutToolStripMenuItem
-            // 
-            this.aboutToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.aboutCAVAPAToolStripMenuItem});
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(78, 29);
-            this.aboutToolStripMenuItem.Text = "&About";
-            // 
-            // aboutCAVAPAToolStripMenuItem
-            // 
-            this.aboutCAVAPAToolStripMenuItem.Name = "aboutCAVAPAToolStripMenuItem";
-            this.aboutCAVAPAToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
-            this.aboutCAVAPAToolStripMenuItem.Text = "&About CAVAPA";
-            this.aboutCAVAPAToolStripMenuItem.Click += new System.EventHandler(this.aboutCAVAPAToolStripMenuItem_Click);
             // 
             // editToolStripMenuItem
             // 
@@ -161,6 +146,21 @@ namespace cavapa
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
             this.settingsToolStripMenuItem.Size = new System.Drawing.Size(372, 34);
             this.settingsToolStripMenuItem.Text = "&Settings";
+            // 
+            // aboutToolStripMenuItem
+            // 
+            this.aboutToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aboutCAVAPAToolStripMenuItem});
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(78, 29);
+            this.aboutToolStripMenuItem.Text = "&About";
+            // 
+            // aboutCAVAPAToolStripMenuItem
+            // 
+            this.aboutCAVAPAToolStripMenuItem.Name = "aboutCAVAPAToolStripMenuItem";
+            this.aboutCAVAPAToolStripMenuItem.Size = new System.Drawing.Size(234, 34);
+            this.aboutCAVAPAToolStripMenuItem.Text = "&About CAVAPA";
+            this.aboutCAVAPAToolStripMenuItem.Click += new System.EventHandler(this.aboutCAVAPAToolStripMenuItem_Click);
             // 
             // MainForm
             // 

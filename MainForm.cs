@@ -167,6 +167,11 @@ namespace cavapa
 
                         Image<Bgr, byte> currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
 
+                        ShowEditMaskForm(currImage.ToBitmap());
+                        return;
+                        //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = currImage.ToBitmap());
+                        //ShowEditMaskForm.Invoke(m);
+
                         if (frameNumber % frameBlendInterval == 0)
                             background = backgroundBuilder.Update(currImage.Mat).ToImage<Bgr,byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
 
@@ -186,13 +191,18 @@ namespace cavapa
                         Image<Bgr,byte> moveImg = movement.Convert<Bgr,byte>();
                         moveImg[0] = new Image<Gray, byte>(width, height); // Make the blue-channel zero
                         moveImg[2] = new Image<Gray, byte>(width, height); // Make the red-channel zero
-                        MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
                         //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = moveImg.ToBitmap());
+                        MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
                         pictureBox1.Invoke(m);
-
                     }
                 }
             }
+        }
+
+        private void ShowEditMaskForm(Bitmap bg) {
+            MaskForm form = new MaskForm();
+            form.Background = bg;
+            form.ShowDialog();
         }
 
         Bitmap ProcessOpenCV(byte[] curr, byte[] prev, int width, int height, int bpp = 3)
