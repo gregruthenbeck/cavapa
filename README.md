@@ -4,6 +4,8 @@ A Windows 10 GUI application that computes a measurement of movement (physical a
 
 <https://cavapa.ruthenbeck.io>
 
+<https://github.com/gregruthenbeck/cavapa>
+
 ### Dependencies
 
 * C# .NET Framework 4.2.7 (built for Windows 10)
