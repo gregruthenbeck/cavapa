@@ -20,6 +20,8 @@ namespace cavapa
 {
     public partial class MainForm : Form
     {
+        bool maskSet = false;
+
         public MainForm()
         {
             InitializeComponent();
@@ -160,6 +162,7 @@ namespace cavapa
                     var currForeground = new Image<Bgr, byte>(width, height);
                     var prevForeground = new Image<Bgr, byte>(width, height);
                     var movement = new Image<Gray, byte>(width, height);
+                    Image<Gray, byte> mask = null;
 
                     while (vsd.TryDecodeNextFrame(out var frame))
                     {
@@ -167,10 +170,31 @@ namespace cavapa
 
                         Image<Bgr, byte> currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
 
-                        ShowEditMaskForm(currImage.ToBitmap());
-                        return;
+                        if (!maskSet)
+                        {
+                            using (Bitmap bmp = ShowEditMaskForm(currImage.ToBitmap(), mask))
+                            {
+                                maskSet = true;
+
+                                if (bmp == null)
+                                {
+                                    continue;
+                                }
+                                mask = GetMatFromSDImage(bmp).ToImage<Bgra, byte>()[2];
+                                // Clean-up and invert to form the correct mask
+                                var whiteImg = new Image<Gray, byte>(width, height);
+                                whiteImg.SetValue(255);
+                                mask = whiteImg.Copy(mask).Not();
+                            }
+                        }
+                        
+                        if(mask != null)
+                        {
+                            currImage = currImage.Copy(mask);
+                        }
+
                         //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = currImage.ToBitmap());
-                        //ShowEditMaskForm.Invoke(m);
+                        //pictureBox1.Invoke(m);
 
                         if (frameNumber % frameBlendInterval == 0)
                             background = backgroundBuilder.Update(currImage.Mat).ToImage<Bgr,byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
@@ -199,10 +223,42 @@ namespace cavapa
             }
         }
 
-        private void ShowEditMaskForm(Bitmap bg) {
+        private Bitmap ShowEditMaskForm(Bitmap bg, Image<Gray,byte> mask) {
             MaskForm form = new MaskForm();
             form.Background = bg;
-            form.ShowDialog();
+            if (mask != null) 
+            {
+                Image<Bgra, byte> colourMask = new Image<Bgra, byte>(bg.Width, bg.Height, new Bgra(0, 0, 40.0, 200.0));
+                form.Mask = colourMask.Copy(mask.Not()).ToBitmap();
+            }
+            if (form.ShowDialog() == DialogResult.OK) {
+                return form.Mask; 
+            }
+            return null;
+        }
+
+        private Mat GetMatFromSDImage(Bitmap image)
+        {
+            int stride = 0;
+
+            System.Drawing.Rectangle rect = new System.Drawing.Rectangle(0, 0, image.Width, image.Height);
+            System.Drawing.Imaging.BitmapData bmpData = image.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, image.PixelFormat);
+
+            System.Drawing.Imaging.PixelFormat pf = image.PixelFormat;
+            if (pf == System.Drawing.Imaging.PixelFormat.Format32bppArgb)
+            {
+                stride = image.Width * 4;
+            }
+            else
+            {
+                stride = image.Width * 3;
+            }
+
+            Image<Bgra, byte> cvImage = new Image<Bgra, byte>(image.Width, image.Height, stride, (IntPtr)bmpData.Scan0);
+
+            image.UnlockBits(bmpData);
+
+            return cvImage.Mat;
         }
 
         Bitmap ProcessOpenCV(byte[] curr, byte[] prev, int width, int height, int bpp = 3)
@@ -427,6 +483,11 @@ namespace cavapa
         {
             AboutForm aboutForm = new AboutForm();
             aboutForm.ShowDialog();
+        }
+
+        private void editMaskToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            maskSet = false;
         }
     }
 }

@@ -23,6 +23,8 @@ namespace cavapa
         Point mousePos;
         int brushRadius = 80;
         float brushSizeChangeRate = 1.1f;
+        bool hasChanged = false;
+        bool smoothClose = false;
 
         public Bitmap Background
         {
@@ -52,6 +54,10 @@ namespace cavapa
 
         public Bitmap Mask
         {
+            set 
+            {
+                mask = value;
+            }
             get
             {
                 return mask;
@@ -89,6 +95,7 @@ namespace cavapa
                         g.FillEllipse(new SolidBrush(Color.FromArgb(200, 40, 0, 0)), brushRect);
                     else
                         g.FillEllipse(new SolidBrush(Color.Transparent), brushRect);
+                    hasChanged = true;
                 }
             }
 
@@ -152,6 +159,35 @@ namespace cavapa
         private void buttonBrushReset_Click(object sender, EventArgs e)
         {
             brushRadius = 80;
+        }
+
+        private void MaskForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (!hasChanged)
+            {
+                paintTimer.Stop();
+                DialogResult = DialogResult.Cancel;
+                return;
+            }
+
+            if (smoothClose) {
+                paintTimer.Stop();
+                DialogResult = DialogResult.OK;
+                return;
+            }
+
+            if (MessageBox.Show("You have unsaved changes. Continue without saving?", "CAVAPA Mask: Unsaved changes",
+                MessageBoxButtons.OKCancel) == DialogResult.Cancel) {
+                e.Cancel = true;
+                buttonSaveAndClose.BackColor = Color.LightGreen;
+                buttonSaveAndClose.Focus();
+            }
+        }
+
+        private void buttonSaveAndClose_Click(object sender, EventArgs e)
+        {
+            smoothClose = true;
+            this.Close();
         }
 
         private void buttonBrushSmaller_Click(object sender, EventArgs e)

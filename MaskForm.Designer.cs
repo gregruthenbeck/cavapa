@@ -38,6 +38,7 @@ namespace cavapa
             this.buttonBrushSmaller = new System.Windows.Forms.Button();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.buttonSaveAndClose = new System.Windows.Forms.Button();
             this.tableLayoutPanel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -48,13 +49,14 @@ namespace cavapa
             // 
             // tableLayoutPanel2
             // 
-            this.tableLayoutPanel2.ColumnCount = 7;
+            this.tableLayoutPanel2.ColumnCount = 8;
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 140F));
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 55F));
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 55F));
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 140F));
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 55F));
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 55F));
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 140F));
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel2.Controls.Add(this.buttonZoomReset, 0, 0);
             this.tableLayoutPanel2.Controls.Add(this.buttonZoomIn, 1, 0);
@@ -62,12 +64,13 @@ namespace cavapa
             this.tableLayoutPanel2.Controls.Add(this.buttonBrushReset, 3, 0);
             this.tableLayoutPanel2.Controls.Add(this.buttonBrushBigger, 4, 0);
             this.tableLayoutPanel2.Controls.Add(this.buttonBrushSmaller, 5, 0);
+            this.tableLayoutPanel2.Controls.Add(this.buttonSaveAndClose, 6, 0);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Left;
             this.tableLayoutPanel2.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 1;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(566, 58);
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(740, 58);
             this.tableLayoutPanel2.TabIndex = 2;
             // 
             // buttonZoomReset
@@ -170,6 +173,17 @@ namespace cavapa
             this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseMove);
             this.pictureBox1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseUp);
             // 
+            // buttonSaveAndClose
+            // 
+            this.buttonSaveAndClose.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.buttonSaveAndClose.Location = new System.Drawing.Point(503, 3);
+            this.buttonSaveAndClose.Name = "buttonSaveAndClose";
+            this.buttonSaveAndClose.Size = new System.Drawing.Size(134, 52);
+            this.buttonSaveAndClose.TabIndex = 6;
+            this.buttonSaveAndClose.Text = "&Save && Close";
+            this.buttonSaveAndClose.UseVisualStyleBackColor = true;
+            this.buttonSaveAndClose.Click += new System.EventHandler(this.buttonSaveAndClose_Click);
+            // 
             // MaskForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -178,6 +192,7 @@ namespace cavapa
             this.Controls.Add(this.splitContainer1);
             this.Name = "MaskForm";
             this.Text = "CAVAPA: Edit Frame Mask";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MaskForm_FormClosing);
             this.Load += new System.EventHandler(this.MaskForm_Load);
             this.tableLayoutPanel2.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
@@ -200,5 +215,6 @@ namespace cavapa
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Button buttonBrushSmaller;
+        private System.Windows.Forms.Button buttonSaveAndClose;
     }
 }

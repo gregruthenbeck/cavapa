@@ -134,6 +134,7 @@ namespace cavapa
             this.editMaskToolStripMenuItem.Name = "editMaskToolStripMenuItem";
             this.editMaskToolStripMenuItem.Size = new System.Drawing.Size(372, 34);
             this.editMaskToolStripMenuItem.Text = "Edit &Mask";
+            this.editMaskToolStripMenuItem.Click += new System.EventHandler(this.editMaskToolStripMenuItem_Click);
             // 
             // toggleVisibilityOfIntermediatesToolStripMenuItem
             // 
