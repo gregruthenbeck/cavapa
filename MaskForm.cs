@@ -86,7 +86,7 @@ namespace cavapa
                     //g.Transform.Scale(windowScale.Width, windowScale.Height); // TODO: Use this coordinate-transform of the graphics context
                     g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
                     if (mouseLButtonDown)
-                        g.FillEllipse(new SolidBrush(Color.FromArgb(160, 180, 0, 0)), brushRect);
+                        g.FillEllipse(new SolidBrush(Color.FromArgb(200, 40, 0, 0)), brushRect);
                     else
                         g.FillEllipse(new SolidBrush(Color.Transparent), brushRect);
                 }
