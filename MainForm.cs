@@ -118,8 +118,8 @@ namespace cavapa
         private unsafe void DecodeAllFramesToImages(AVHWDeviceType HWDevice)
         {
             // decode all frames from url, please note that it can be a local or remote resource, e.g. string url = "../../sample_mpeg4.mp4";
-            var url = "CameraB_1min.mp4";
-            //var url = "kilp_2011_8_22-10-koris-deint.mp4";
+            //var url = "CameraB_1min.mp4";
+            var url = "kilp_2011_8_22-10-koris-deint.mp4";
 
             // Search for the sample file by popping dirs until we either find it or run out of pops
             var current = Environment.CurrentDirectory;
@@ -209,7 +209,11 @@ namespace cavapa
                         prevImage.Bytes = currImage.Bytes;
                         prevForeground.Bytes = currForeground.Bytes;
 
-                        Console.WriteLine($"frame: {frameNumber}. Movement: {movement.GetSum().Intensity * 1.0E-3}");
+                        var moveScoreStr = $"{(movement.GetSum().Intensity * 1.0E-3):F1}";
+                        moveScoreStr = moveScoreStr.PadLeft(6);
+                        var status = $"Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
+                        Console.WriteLine(status);
+                        statusLabel.Text = status;
                         frameNumber++;
 
                         Image<Bgr,byte> moveImg = movement.Convert<Bgr,byte>();
