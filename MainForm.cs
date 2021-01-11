@@ -117,6 +117,7 @@ namespace cavapa
         {
             // decode all frames from url, please note that it can be a local or remote resource, e.g. string url = "../../sample_mpeg4.mp4";
             var url = "CameraB_1min.mp4";
+            //var url = "kilp_2011_8_22-10-koris-deint.mp4";
 
             // Search for the sample file by popping dirs until we either find it or run out of pops
             var current = Environment.CurrentDirectory;
