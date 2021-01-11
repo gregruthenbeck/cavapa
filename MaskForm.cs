@@ -16,10 +16,13 @@ namespace cavapa
 
         Bitmap background, mask, bmp;
 
+        SizeF initScale;
+        float zoomRate = 1.1f;
         bool mouseLButtonDown = false;
         bool mouseRButtonDown = false;
         Point mousePos;
         int brushRadius = 80;
+        float brushSizeChangeRate = 1.1f;
 
         public Bitmap Background
         {
@@ -28,6 +31,18 @@ namespace cavapa
                 background = value;
                 mask = new Bitmap(value.Width, value.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                 bmp = new Bitmap(value.Width, value.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                if (value.Height < 1080)
+                {
+                    initScale = new SizeF(1.5f, 1.5f);
+                }
+                else
+                {
+                    initScale = new SizeF(1, 1);
+                }
+                pictureBox1.Size = new Size((int)(initScale.Width * (float)value.Width),
+                                            (int)(initScale.Height * (float)value.Height));
+                this.Width = pictureBox1.Width + 20;
+                this.Height = pictureBox1.Height + 90;
             }
             get
             {
@@ -71,7 +86,7 @@ namespace cavapa
                     //g.Transform.Scale(windowScale.Width, windowScale.Height); // TODO: Use this coordinate-transform of the graphics context
                     g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
                     if (mouseLButtonDown)
-                        g.FillEllipse(new SolidBrush(Color.FromArgb(160, Color.Red)), brushRect);
+                        g.FillEllipse(new SolidBrush(Color.FromArgb(160, 180, 0, 0)), brushRect);
                     else
                         g.FillEllipse(new SolidBrush(Color.Transparent), brushRect);
                 }
@@ -114,6 +129,39 @@ namespace cavapa
         {
             mouseLButtonDown = false;
             mouseRButtonDown = false;
+        }
+
+        private void buttonZoomReset_Click(object sender, EventArgs e)
+        {
+            pictureBox1.Width = (int)(initScale.Width * (float)background.Width);
+            pictureBox1.Height = (int)(initScale.Height * (float)background.Height);
+        }
+
+        private void buttonZoomIn_Click(object sender, EventArgs e)
+        {
+            pictureBox1.Width = (int)(zoomRate * (float)pictureBox1.Width);
+            pictureBox1.Height = (int)(zoomRate * (float)pictureBox1.Height);
+        }
+
+        private void buttonZoomOut_Click(object sender, EventArgs e)
+        {
+            pictureBox1.Width = (int)((float)pictureBox1.Width / zoomRate);
+            pictureBox1.Height = (int)((float)pictureBox1.Height / zoomRate);
+        }
+
+        private void buttonBrushReset_Click(object sender, EventArgs e)
+        {
+            brushRadius = 80;
+        }
+
+        private void buttonBrushSmaller_Click(object sender, EventArgs e)
+        {
+            brushRadius = (int)(brushRadius / brushSizeChangeRate);
+        }
+
+        private void buttonBrushBigger_Click(object sender, EventArgs e)
+        {
+            brushRadius = (int)(brushRadius * brushSizeChangeRate);
         }
     }
 }
