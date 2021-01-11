@@ -20,7 +20,7 @@ namespace cavapa
 {
     public partial class MainForm : Form
     {
-        bool maskSet = false;
+        bool maskSet = true;
 
         public MainForm()
         {
@@ -158,10 +158,12 @@ namespace cavapa
                     Image<Bgr, byte> prevImage = new Image<Bgr, byte>(width, height); //Image Class from Emgu.CV
                     int frameBlendInterval = 25;
                     FrameBlender backgroundBuilder = new FrameBlender(width, height, 10);
+                    FrameBlender frameSmoother = new FrameBlender(width, height, 4);
                     var background = new Image<Bgr, byte>(width, height);
                     var currForeground = new Image<Bgr, byte>(width, height);
                     var prevForeground = new Image<Bgr, byte>(width, height);
                     var movement = new Image<Gray, byte>(width, height);
+                    var movementHist = new Image<Gray, byte>(width, height);
                     Image<Gray, byte> mask = null;
 
                     while (vsd.TryDecodeNextFrame(out var frame))
@@ -188,23 +190,22 @@ namespace cavapa
                             }
                         }
                         
-                        if(mask != null)
-                        {
-                            currImage = currImage.Copy(mask);
-                        }
-
-                        //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = currImage.ToBitmap());
-                        //pictureBox1.Invoke(m);
+                        currImage = frameSmoother.Update(currImage.Mat).ToImage<Bgr, byte>();
 
                         if (frameNumber % frameBlendInterval == 0)
                             background = backgroundBuilder.Update(currImage.Mat).ToImage<Bgr,byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
 
                         Mat foregroundMat = background.Not().Mat + currImage.Mat;
-                        currForeground = foregroundMat.ToImage<Bgr,byte>();
+                        currForeground = foregroundMat.ToImage<Bgr, byte>();
 
                         Mat moveMat = foregroundMat - prevForeground.Mat;
-                        double noiseFloor = 0.2;
-                        movement = ((moveMat - noiseFloor) * 2.0).ToImage<Bgr, byte>().Convert<Gray,byte>();
+                        double noiseFloor = 0.7;
+                        movement = ((moveMat - noiseFloor) * 5.0).ToImage<Bgr, byte>().Convert<Gray,byte>();
+
+                        if (mask != null)
+                        {
+                            movement = movement.Copy(mask);
+                        }
 
                         prevImage.Bytes = currImage.Bytes;
                         prevForeground.Bytes = currForeground.Bytes;
@@ -216,12 +217,15 @@ namespace cavapa
                         statusLabel.Text = status;
                         frameNumber++;
 
-                        Image<Bgr,byte> moveImg = movement.Convert<Bgr,byte>();
+                        movementHist = (movementHist.Mat * 0.9).ToImage<Gray,byte>();
+                        movementHist = (movementHist.Mat + movement.Mat).ToImage<Gray, byte>();
+
+                        Image<Bgr,byte> moveImg = movementHist.Convert<Bgr,byte>();
                         moveImg[0] = new Image<Gray, byte>(width, height); // Make the blue-channel zero
                         moveImg[2] = new Image<Gray, byte>(width, height); // Make the red-channel zero
                         //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = moveImg.ToBitmap());
-                        MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
-                        pictureBox1.Invoke(m);
+                        var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
+                        pictureBox1.Invoke(picMI);
                     }
                 }
             }
