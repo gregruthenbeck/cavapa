@@ -52,19 +52,23 @@ namespace cavapa
         {
             paintTimer = new Timer();
             paintTimer.Tick += PaintTimer_Tick;
-            paintTimer.Interval = 1000 / 40; // 40Hz
+            paintTimer.Interval = 1000 / 100; // 40Hz
             paintTimer.Start();
         }
 
         private void PaintTimer_Tick(object sender, EventArgs e)
         {
-            Point p = mousePos;
-            int r = brushRadius;
-            Rectangle brushRect = new Rectangle(p.X - r, p.Y - r, 2 * r, 2 * r);
+            PointF p = new PointF(mousePos.X, mousePos.Y);
+            SizeF windowScale = new SizeF((float)background.Width / (float)pictureBox1.Width, (float)background.Height / (float)pictureBox1.Height);
+            p.X *= windowScale.Width;
+            p.Y *= windowScale.Height;
+            PointF r = new PointF(brushRadius * windowScale.Width, brushRadius * windowScale.Height);
+            RectangleF brushRect = new RectangleF(p.X - r.X, p.Y - r.Y, 2 * r.X, 2 * r.Y);
 
             if (mouseLButtonDown || mouseRButtonDown) {
                 using (Graphics g = Graphics.FromImage(mask))
                 {
+                    //g.Transform.Scale(windowScale.Width, windowScale.Height); // TODO: Use this coordinate-transform of the graphics context
                     g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
                     if (mouseLButtonDown)
                         g.FillEllipse(new SolidBrush(Color.FromArgb(160, Color.Red)), brushRect);
@@ -78,7 +82,12 @@ namespace cavapa
                 g.DrawImageUnscaled(background, 0, 0);
                 g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
                 g.DrawImageUnscaled(mask, 0, 0);
-                g.DrawEllipse(new Pen(Color.FromArgb(200,Color.Green),2.0f), brushRect);
+                g.DrawEllipse(new Pen(Color.FromArgb(127, Color.White), 1.0f), brushRect);
+                brushRect.X += 1.0f;
+                brushRect.Y += 1.0f;
+                brushRect.Width  -= 1.0f;
+                brushRect.Height -= 1.0f;
+                g.DrawEllipse(new Pen(Color.FromArgb(127, Color.Black), 1.0f), brushRect);
             }
 
             pictureBox1.Image = bmp;
