@@ -393,5 +393,30 @@ namespace cavapa
                 frameBitmap.UnlockBits(bitmapData);
             }
         }
+
+        private void openVideoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "Video files (avi,mov,mp4,mpg,mpeg,mkv,mts,wmv)|*.avi;" + 
+                "*.Avi;*.AVI;*.mov;*.Mov;*.MOV;*.mp4;*.Mp4;*.MP4;*.mpg;*.Mpg;*.MPG;" + 
+                "*.mpeg;*.Mpeg;*.MPEG;*.mkv;*.Mkv;*.MKV;*.mts;*.Mts;*.MTS;*.wmv;*.Wmv;*.WMV|" +
+                "All files (*.*)|*.*";
+            if (ofd.ShowDialog() == DialogResult.OK) {
+                string fname = Path.GetFileName(ofd.FileName);
+                this.Text = "CAVAPA: " + fname;
+                statusLabel.Text = fname;
+            }
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void aboutCAVAPAToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AboutForm aboutForm = new AboutForm();
+            aboutForm.ShowDialog();
+        }
     }
 }
