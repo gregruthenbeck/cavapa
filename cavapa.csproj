@@ -97,6 +97,7 @@
       <DependentUpon>MaskForm.cs</DependentUpon>
     </Compile>
     <Compile Include="MediaDecoder.cs" />
+    <Compile Include="ProcessSettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VideoFrameConverter.cs" />

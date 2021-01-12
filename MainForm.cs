@@ -21,6 +21,8 @@ namespace cavapa
     public partial class MainForm : Form
     {
         bool maskSet = true;
+        bool processingEnabled = true;
+        ProcessSettings processSettings = new ProcessSettings();
 
         public MainForm()
         {
@@ -38,31 +40,8 @@ namespace cavapa
 
             SetupLogging();
 
-            //Task.Run(() =>
-            //{
-            //    Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-
-            //    // decode all frames from url, please note that it can be a local or remote resource, e.g. string url = "../../sample_mpeg4.mp4";
-            //    //var url = "CameraB_1min.mp4";
-            //    var url = "kilp_2011_8_22-10-koris-deint.mp4";
-
-            //    // Search for file by popping dirs until we either find it or run out of pops
-            //    var current = Environment.CurrentDirectory;
-            //    while (current != null)
-            //    {
-            //        var path = Path.Combine(current, url);
-            //        if (File.Exists(path))
-            //        {
-            //            Console.WriteLine($"Sample video found in: {path}");
-            //            url = path;
-            //            break;
-            //        }
-
-            //        current = Directory.GetParent(current)?.FullName;
-            //    }
-
-            //    DecodeAllFramesToImages(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, url);
-            //});
+            enableFlickerReductionToolStripMenuItem.Checked = (processSettings.frameBlendCount > 1);
+            enableShadowReductionToolStripMenuItem.Checked = processSettings.enableShadowReduction;
 
             //ConfigureHWDecoder(out var deviceType);
             //var deviceType = AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2;
@@ -76,10 +55,6 @@ namespace cavapa
 
         private void Form1_Shown(object sender, EventArgs e)
         {
-        }
-
-        private void SetImage(Image img) {
-            pictureBox1.Image = img;
         }
 
         private static void ConfigureHWDecoder(out AVHWDeviceType HWtype)
@@ -137,6 +112,9 @@ namespace cavapa
 
         private unsafe void DecodeAllFramesToImages(AVHWDeviceType HWDevice, string url)
         {
+            var ps = processSettings;
+            processingEnabled = true;
+
             using (var vsd = new VideoStreamDecoder(url, HWDevice))
             {
                 Console.WriteLine($"codec name: {vsd.CodecName}");
@@ -157,9 +135,8 @@ namespace cavapa
                     var height = destinationSize.Height;
 
                     Image<Bgr, byte> prevImage = new Image<Bgr, byte>(width, height); //Image Class from Emgu.CV
-                    int frameBlendInterval = 25;
-                    FrameBlender backgroundBuilder = new FrameBlender(width, height, 10);
-                    FrameBlender frameSmoother = new FrameBlender(width, height, 4);
+                    FrameBlender backgroundBuilder = new FrameBlender(width, height, ps.backgroundFrameBlendCount);
+                    FrameBlender frameSmoother = new FrameBlender(width, height, ps.frameBlendCount);
                     var background = new Image<Bgr, byte>(width, height);
                     var currForeground = new Image<Bgr, byte>(width, height);
                     var prevForeground = new Image<Bgr, byte>(width, height);
@@ -167,11 +144,16 @@ namespace cavapa
                     var movementHist = new Image<Gray, byte>(width, height);
                     Image<Gray, byte> mask = null;
 
-                    while (vsd.TryDecodeNextFrame(out var frame))
+                    while (vsd.TryDecodeNextFrame(out var frame) && processingEnabled)
                     {
                         var convertedFrame = vfc.Convert(frame);
 
                         Image<Bgr, byte> currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
+                        // Shadow reduction: Shadows are lindear and less vertical, so stretch the image wider
+                        // and then resize back to original aspect-ratio to discard some horizontal detail.
+                        // Also, people are taller than bikes & balls
+                        if (ps.enableShadowReduction)
+                            currImage = currImage.Resize(width, height / 8, Emgu.CV.CvEnum.Inter.Area).Resize(width, height, Emgu.CV.CvEnum.Inter.Area);
                         currImage = frameSmoother.Update(currImage.Mat).ToImage<Bgr, byte>();
 
                         if (!maskSet)
@@ -183,7 +165,7 @@ namespace cavapa
                                 if (bmp == null)
                                     continue;
 
-                                mask = GetMatFromSDImage(bmp).ToImage<Bgra, byte>()[2];
+                                mask = GetMatFromSDImage(bmp).ToImage<Bgra, byte>()[2]; // mask is red-channel
                                 // Clean-up and invert to form the correct mask
                                 var whiteImg = new Image<Gray, byte>(width, height);
                                 whiteImg.SetValue(255);
@@ -191,15 +173,17 @@ namespace cavapa
                             }
                         }
                         
-                        if (frameNumber % frameBlendInterval == 0)
+                        if (frameNumber % ps.backgroundFrameBlendInterval == 0)
                             background = backgroundBuilder.Update(currImage.Mat).ToImage<Bgr,byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
 
                         Mat foregroundMat = background.Not().Mat + currImage.Mat;
                         currForeground = foregroundMat.ToImage<Bgr, byte>();
 
                         Mat moveMat = foregroundMat - prevForeground.Mat;
-                        double noiseFloor = 0.7;
-                        movement = ((moveMat - noiseFloor) * 5.0).ToImage<Bgr, byte>().Convert<Gray,byte>();
+                        movement = ((moveMat - ps.movementNoiseFloor) * ps.movementMultiplier).ToImage<Bgr, byte>().Convert<Gray,byte>();
+
+                        // Shadows are nearly horizontal. So squish the image and then resize it back to remove horizontal detail
+                        //movement = movement.Resize(width * 2, height / 6, Emgu.CV.CvEnum.Inter.Cubic).Resize(width,height, Emgu.CV.CvEnum.Inter.Cubic);
 
                         if (mask != null)
                             movement = movement.Copy(mask);
@@ -207,16 +191,18 @@ namespace cavapa
                         prevImage.Bytes = currImage.Bytes;
                         prevForeground.Bytes = currForeground.Bytes;
 
-                        var moveScoreStr = $"{(movement.GetSum().Intensity * 1.0E-3):F1}";
+                        var moveScoreStr = $"{(movement.GetSum().Intensity * ps.movementScoreMul):F1}";
                         moveScoreStr = moveScoreStr.PadLeft(6);
                         var status = $"Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
                         Console.WriteLine(status);
                         statusLabel.Text = status;
                         frameNumber++;
 
-                        movementHist = (movementHist.Mat * 0.9).ToImage<Gray,byte>();
+                        movementHist = (movementHist.Mat * ps.movementHistoryDecay).ToImage<Gray,byte>();
                         movementHist = (movementHist.Mat + movement.Mat).ToImage<Gray, byte>();
 
+                        // re-init to see un-processed input frame
+                        currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
                         Image<Bgr,byte> moveImg = movementHist.Convert<Bgr,byte>();
                         moveImg[0] = new Image<Gray, byte>(width, height); // Make the blue-channel zero
                         moveImg[2] = new Image<Gray, byte>(width, height); // Make the red-channel zero
@@ -467,6 +453,8 @@ namespace cavapa
 
         private void openVideoToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            processingEnabled = false;
+
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = "Video files (avi,mov,mp4,mpg,mpeg,mkv,mts,wmv)|*.avi;" + 
                 "*.Avi;*.AVI;*.mov;*.Mov;*.MOV;*.mp4;*.Mp4;*.MP4;*.mpg;*.Mpg;*.MPG;" + 
@@ -499,6 +487,30 @@ namespace cavapa
         private void editMaskToolStripMenuItem_Click(object sender, EventArgs e)
         {
             maskSet = false;
+        }
+
+        private void exportCSVDataFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            processingEnabled = false;
+        }
+
+        private void enableFlickerReductionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var menuItem = sender as ToolStripMenuItem;
+            menuItem.Checked = !menuItem.Checked;
+            processSettings.frameBlendCount = (menuItem.Checked ? 4 : 1);
+        }
+
+        private void enableShadowReductionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var menuItem = sender as ToolStripMenuItem;
+            menuItem.Checked = !menuItem.Checked;
+            processSettings.enableShadowReduction = menuItem.Checked;
         }
     }
 }

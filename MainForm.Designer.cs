@@ -36,13 +36,19 @@ namespace cavapa
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.openVideoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.exportCSVDataFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editMaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toggleVisibilityOfIntermediatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutCAVAPAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.enableFlickerReductionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.enableShadowReductionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -100,6 +106,9 @@ namespace cavapa
             // 
             this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openVideoToolStripMenuItem,
+            this.toolStripSeparator2,
+            this.exportCSVDataFileToolStripMenuItem,
+            this.toolStripSeparator1,
             this.closeToolStripMenuItem});
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.Size = new System.Drawing.Size(54, 29);
@@ -108,14 +117,31 @@ namespace cavapa
             // openVideoToolStripMenuItem
             // 
             this.openVideoToolStripMenuItem.Name = "openVideoToolStripMenuItem";
-            this.openVideoToolStripMenuItem.Size = new System.Drawing.Size(209, 34);
+            this.openVideoToolStripMenuItem.Size = new System.Drawing.Size(244, 34);
             this.openVideoToolStripMenuItem.Text = "&Open Video";
             this.openVideoToolStripMenuItem.Click += new System.EventHandler(this.openVideoToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(241, 6);
+            // 
+            // exportCSVDataFileToolStripMenuItem
+            // 
+            this.exportCSVDataFileToolStripMenuItem.Name = "exportCSVDataFileToolStripMenuItem";
+            this.exportCSVDataFileToolStripMenuItem.Size = new System.Drawing.Size(244, 34);
+            this.exportCSVDataFileToolStripMenuItem.Text = "Export CSV &Data";
+            this.exportCSVDataFileToolStripMenuItem.Click += new System.EventHandler(this.exportCSVDataFileToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(241, 6);
             // 
             // closeToolStripMenuItem
             // 
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(209, 34);
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(244, 34);
             this.closeToolStripMenuItem.Text = "&Close";
             this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
@@ -123,7 +149,10 @@ namespace cavapa
             // 
             this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.editMaskToolStripMenuItem,
-            this.toggleVisibilityOfIntermediatesToolStripMenuItem,
+            this.toolStripSeparator3,
+            this.enableFlickerReductionToolStripMenuItem,
+            this.enableShadowReductionToolStripMenuItem,
+            this.toolStripSeparator4,
             this.settingsToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(58, 29);
@@ -135,12 +164,6 @@ namespace cavapa
             this.editMaskToolStripMenuItem.Size = new System.Drawing.Size(372, 34);
             this.editMaskToolStripMenuItem.Text = "Edit &Mask";
             this.editMaskToolStripMenuItem.Click += new System.EventHandler(this.editMaskToolStripMenuItem_Click);
-            // 
-            // toggleVisibilityOfIntermediatesToolStripMenuItem
-            // 
-            this.toggleVisibilityOfIntermediatesToolStripMenuItem.Name = "toggleVisibilityOfIntermediatesToolStripMenuItem";
-            this.toggleVisibilityOfIntermediatesToolStripMenuItem.Size = new System.Drawing.Size(372, 34);
-            this.toggleVisibilityOfIntermediatesToolStripMenuItem.Text = "Toggle Visibility of &Intermediates";
             // 
             // settingsToolStripMenuItem
             // 
@@ -163,6 +186,30 @@ namespace cavapa
             this.aboutCAVAPAToolStripMenuItem.Text = "&About CAVAPA";
             this.aboutCAVAPAToolStripMenuItem.Click += new System.EventHandler(this.aboutCAVAPAToolStripMenuItem_Click);
             // 
+            // enableFlickerReductionToolStripMenuItem
+            // 
+            this.enableFlickerReductionToolStripMenuItem.Name = "enableFlickerReductionToolStripMenuItem";
+            this.enableFlickerReductionToolStripMenuItem.Size = new System.Drawing.Size(321, 34);
+            this.enableFlickerReductionToolStripMenuItem.Text = "Enable &Flicker-Reduction";
+            this.enableFlickerReductionToolStripMenuItem.Click += new System.EventHandler(this.enableFlickerReductionToolStripMenuItem_Click);
+            // 
+            // enableShadowReductionToolStripMenuItem
+            // 
+            this.enableShadowReductionToolStripMenuItem.Name = "enableShadowReductionToolStripMenuItem";
+            this.enableShadowReductionToolStripMenuItem.Size = new System.Drawing.Size(321, 34);
+            this.enableShadowReductionToolStripMenuItem.Text = "Enable &Shadow-Reduction";
+            this.enableShadowReductionToolStripMenuItem.Click += new System.EventHandler(this.enableShadowReductionToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(318, 6);
+            // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(318, 6);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -174,6 +221,7 @@ namespace cavapa
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "CAVAPA: Computer Assisted Video Analysis of Physical Activity";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
@@ -200,8 +248,14 @@ namespace cavapa
         private System.Windows.Forms.ToolStripMenuItem aboutCAVAPAToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editMaskToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem toggleVisibilityOfIntermediatesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem exportCSVDataFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripMenuItem enableFlickerReductionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem enableShadowReductionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
     }
 }
 
