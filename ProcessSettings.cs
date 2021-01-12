@@ -10,7 +10,7 @@ namespace cavapa
     {
         public int backgroundFrameBlendInterval = 25;
         public int backgroundFrameBlendCount = 10;
-        public int frameBlendCount = 4;
+        public int frameBlendCount = 3;
         public bool enableShadowReduction = false;
         public double movementNoiseFloor = 0.7;
         public double movementMultiplier = 5.0;

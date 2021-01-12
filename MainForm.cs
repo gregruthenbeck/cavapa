@@ -252,107 +252,6 @@ namespace cavapa
             return cvImage.Mat;
         }
 
-        Bitmap ProcessOpenCV(byte[] curr, byte[] prev, int width, int height, int bpp = 3)
-        {
-            Image<Bgr, byte> currImage = new Image<Bgr, byte>(width, height); //Image Class from Emgu.CV
-            Image<Bgr, byte> prevImage = new Image<Bgr, byte>(width, height); //Image Class from Emgu.CV
-            currImage.Bytes = curr;
-            prevImage.Bytes = prev;
-            Mat diff = currImage.Mat - prevImage.Mat;
-            Image<Bgr, byte> deltaImage = diff.ToImage<Bgr, byte>();
-
-            Rectangle fullRect = new Rectangle(0, 0, width, height);
-            Bitmap ret = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-            BitmapData retData = ret.LockBits(fullRect, ImageLockMode.WriteOnly, ret.PixelFormat);
-            unsafe
-            {
-                byte* src = (byte*)diff.DataPointer;
-                for (int yi = 0; yi < ret.Height; yi++)
-                {
-                    byte* dst = (byte*)retData.Scan0.ToPointer() + yi * ret.Width * 3; // BGR24
-                    for (int xi = 0; xi < ret.Width * 3; xi++, ++src, ++dst)
-                    {
-                        *dst = *src;
-                    }
-                }
-            }
-            ret.UnlockBits(retData);
-            return ret;
-        }
-
-
-        unsafe Bitmap Process(byte* curr, byte* prev, int width, int height, int bpp = 3)
-        {
-            Rectangle fullRect = new Rectangle(0, 0, width, height);
-            Bitmap ret = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-
-            BitmapData retData = ret.LockBits(fullRect, ImageLockMode.WriteOnly, ret.PixelFormat);
-
-            unsafe
-            {
-                for (int yi = 0; yi < ret.Height; yi++)
-                {
-                    byte* res = (byte*)retData.Scan0.ToPointer() + yi * ret.Width * 3; // BGR24
-                    byte* cur = curr + yi * ret.Width * bpp; // BGR24
-                    byte* pre = prev + yi * ret.Width * bpp; // BGR24
-                    for (int xi = 0; xi < ret.Width; xi++, res += 3, cur += 3, pre += 3)
-                    {
-                        *res = (byte)Math.Abs((int)*cur - (int)*pre);
-                        *(res + 1) = (byte)Math.Abs((int)*(cur + 1) - (int)*(pre + 1));
-                        *(res + 2) = (byte)Math.Abs((int)*(cur + 2) - (int)*(pre + 2));
-                    }
-                }
-            }
-
-            ret.UnlockBits(retData);
-
-            return ret;
-        }
-
-        Bitmap ProcessGraphics(Bitmap curr, Bitmap prev) 
-        {
-            Rectangle fullRect = new Rectangle(0, 0, curr.Width, curr.Height);
-            Bitmap ret = new Bitmap(curr.Width, curr.Height, curr.PixelFormat);
-            using (Graphics g = Graphics.FromImage(ret))
-            {
-                g.DrawImageUnscaled(curr, 0, 0);
-                g.DrawImageUnscaled(prev, 0, 0);
-            }
-            return ret;
-        }
-
-        Bitmap Process(Bitmap curr, Bitmap prev)
-        {
-            Rectangle fullRect = new Rectangle(0, 0, curr.Width, curr.Height);
-            Bitmap ret = new Bitmap(curr.Width, curr.Height, curr.PixelFormat);
-
-            BitmapData retData = ret.LockBits(fullRect, ImageLockMode.WriteOnly, ret.PixelFormat);
-            BitmapData currData = curr.LockBits(fullRect, ImageLockMode.ReadOnly, ret.PixelFormat);
-            BitmapData prevData = prev.LockBits(fullRect, ImageLockMode.ReadOnly, ret.PixelFormat);
-
-            unsafe
-            {
-                for (int yi = 0; yi < curr.Height; yi++)
-                {
-                    byte* res = (byte*)retData.Scan0.ToPointer() + yi * curr.Width * 3; // BGR24
-                    byte* cur = (byte*)currData.Scan0.ToPointer() + yi * curr.Width * 3; // BGR24
-                    byte* pre = (byte*)prevData.Scan0.ToPointer() + yi * curr.Width * 3; // BGR24
-                    for (int xi = 0; xi < curr.Width; xi++, res += 3, cur += 3, pre += 3)
-                    {
-                        *res = (byte)Math.Abs((int)*cur - (int)*pre);
-                        *(res + 1) = (byte)Math.Abs((int)*(cur + 1) - (int)*(pre + 1));
-                        *(res + 2) = (byte)Math.Abs((int)*(cur + 2) - (int)*(pre + 2));
-                    }
-                }
-            }
-
-            ret.UnlockBits(retData);
-            curr.UnlockBits(currData);
-            prev.UnlockBits(prevData);
-
-            return ret;
-        }
-
         private static AVPixelFormat GetHWPixelFormat(AVHWDeviceType hWDevice)
         {
             switch (hWDevice)
@@ -503,7 +402,7 @@ namespace cavapa
         {
             var menuItem = sender as ToolStripMenuItem;
             menuItem.Checked = !menuItem.Checked;
-            processSettings.frameBlendCount = (menuItem.Checked ? 4 : 1);
+            processSettings.frameBlendCount = (menuItem.Checked ? 3 : 1);
         }
 
         private void enableShadowReductionToolStripMenuItem_Click(object sender, EventArgs e)
