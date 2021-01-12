@@ -17,6 +17,14 @@ namespace cavapa
         private readonly AVFrame* _receivedFrame;
         private readonly AVPacket* _pPacket;
 
+        //public AVFormatContext* PFormatContext
+        //{
+        //    get
+        //    {
+        //        return _pFormatContext;
+        //    }
+        //}
+
         public VideoStreamDecoder(string url, AVHWDeviceType HWDeviceType = AVHWDeviceType.AV_HWDEVICE_TYPE_NONE)
         {
             _pFormatContext = ffmpeg.avformat_alloc_context();
@@ -64,6 +72,7 @@ namespace cavapa
             ffmpeg.av_frame_unref(_pFrame);
             ffmpeg.av_frame_unref(_receivedFrame);
             int error;
+
             do
             {
                 try

@@ -112,7 +112,6 @@ namespace cavapa
 
         private unsafe void DecodeAllFramesToImages(AVHWDeviceType HWDevice, string url)
         {
-            var ps = processSettings;
             processingEnabled = true;
 
             using (var vsd = new VideoStreamDecoder(url, HWDevice))
@@ -135,8 +134,8 @@ namespace cavapa
                     var height = destinationSize.Height;
 
                     Image<Bgr, byte> prevImage = new Image<Bgr, byte>(width, height); //Image Class from Emgu.CV
-                    FrameBlender backgroundBuilder = new FrameBlender(width, height, ps.backgroundFrameBlendCount);
-                    FrameBlender frameSmoother = new FrameBlender(width, height, ps.frameBlendCount);
+                    FrameBlender backgroundBuilder = new FrameBlender(width, height, processSettings.backgroundFrameBlendCount);
+                    FrameBlender frameSmoother = new FrameBlender(width, height, processSettings.frameBlendCount);
                     var background = new Image<Bgr, byte>(width, height);
                     var currForeground = new Image<Bgr, byte>(width, height);
                     var prevForeground = new Image<Bgr, byte>(width, height);
@@ -152,7 +151,7 @@ namespace cavapa
                         // Shadow reduction: Shadows are lindear and less vertical, so stretch the image wider
                         // and then resize back to original aspect-ratio to discard some horizontal detail.
                         // Also, people are taller than bikes & balls
-                        if (ps.enableShadowReduction)
+                        if (processSettings.enableShadowReduction)
                             currImage = currImage.Resize(width, height / 8, Emgu.CV.CvEnum.Inter.Area).Resize(width, height, Emgu.CV.CvEnum.Inter.Area);
                         currImage = frameSmoother.Update(currImage.Mat).ToImage<Bgr, byte>();
 
@@ -173,14 +172,14 @@ namespace cavapa
                             }
                         }
                         
-                        if (frameNumber % ps.backgroundFrameBlendInterval == 0)
+                        if (frameNumber % processSettings.backgroundFrameBlendInterval == 0)
                             background = backgroundBuilder.Update(currImage.Mat).ToImage<Bgr,byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
 
                         Mat foregroundMat = background.Not().Mat + currImage.Mat;
                         currForeground = foregroundMat.ToImage<Bgr, byte>();
 
                         Mat moveMat = foregroundMat - prevForeground.Mat;
-                        movement = ((moveMat - ps.movementNoiseFloor) * ps.movementMultiplier).ToImage<Bgr, byte>().Convert<Gray,byte>();
+                        movement = ((moveMat - processSettings.movementNoiseFloor) * processSettings.movementMultiplier).ToImage<Bgr, byte>().Convert<Gray,byte>();
 
                         // Shadows are nearly horizontal. So squish the image and then resize it back to remove horizontal detail
                         //movement = movement.Resize(width * 2, height / 6, Emgu.CV.CvEnum.Inter.Cubic).Resize(width,height, Emgu.CV.CvEnum.Inter.Cubic);
@@ -191,14 +190,14 @@ namespace cavapa
                         prevImage.Bytes = currImage.Bytes;
                         prevForeground.Bytes = currForeground.Bytes;
 
-                        var moveScoreStr = $"{(movement.GetSum().Intensity * ps.movementScoreMul):F1}";
+                        var moveScoreStr = $"{(movement.GetSum().Intensity * processSettings.movementScoreMul):F1}";
                         moveScoreStr = moveScoreStr.PadLeft(6);
                         var status = $"Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
                         Console.WriteLine(status);
                         statusLabel.Text = status;
                         frameNumber++;
 
-                        movementHist = (movementHist.Mat * ps.movementHistoryDecay).ToImage<Gray,byte>();
+                        movementHist = (movementHist.Mat * processSettings.movementHistoryDecay).ToImage<Gray,byte>();
                         movementHist = (movementHist.Mat + movement.Mat).ToImage<Gray, byte>();
 
                         // re-init to see un-processed input frame
