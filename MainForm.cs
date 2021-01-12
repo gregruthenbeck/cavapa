@@ -181,9 +181,6 @@ namespace cavapa
                         Mat moveMat = foregroundMat - prevForeground.Mat;
                         movement = ((moveMat - processSettings.movementNoiseFloor) * processSettings.movementMultiplier).ToImage<Bgr, byte>().Convert<Gray,byte>();
 
-                        // Shadows are nearly horizontal. So squish the image and then resize it back to remove horizontal detail
-                        //movement = movement.Resize(width * 2, height / 6, Emgu.CV.CvEnum.Inter.Cubic).Resize(width,height, Emgu.CV.CvEnum.Inter.Cubic);
-
                         if (mask != null)
                             movement = movement.Copy(mask);
 

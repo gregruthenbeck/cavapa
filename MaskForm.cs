@@ -20,7 +20,7 @@ namespace cavapa
         float zoomRate = 1.1f;
         bool mouseLButtonDown = false;
         bool mouseRButtonDown = false;
-        Point mousePos;
+        Point mousePos, mouseDownPos, mouseUpPos;
         int brushRadius = 80;
         float brushSizeChangeRate = 1.1f;
         bool hasChanged = false;
@@ -77,16 +77,23 @@ namespace cavapa
             paintTimer.Start();
         }
 
-        private void PaintTimer_Tick(object sender, EventArgs e)
+        PointF TransformCoords(Point pos) 
         {
-            PointF p = new PointF(mousePos.X, mousePos.Y);
+            PointF p = new PointF(pos.X, pos.Y);
             SizeF windowScale = new SizeF((float)background.Width / (float)pictureBox1.Width, (float)background.Height / (float)pictureBox1.Height);
             p.X *= windowScale.Width;
             p.Y *= windowScale.Height;
+            return p;
+        }
+
+        private void PaintTimer_Tick(object sender, EventArgs e)
+        {
+            PointF p = TransformCoords(mousePos);
+            SizeF windowScale = new SizeF((float)background.Width / (float)pictureBox1.Width, (float)background.Height / (float)pictureBox1.Height);
             PointF r = new PointF(brushRadius * windowScale.Width, brushRadius * windowScale.Height);
             RectangleF brushRect = new RectangleF(p.X - r.X, p.Y - r.Y, 2 * r.X, 2 * r.Y);
 
-            if (mouseLButtonDown || mouseRButtonDown) {
+            if (!ModifierKeys.HasFlag(Keys.Control) && (mouseLButtonDown || mouseRButtonDown)) {
                 using (Graphics g = Graphics.FromImage(mask))
                 {
                     //g.Transform.Scale(windowScale.Width, windowScale.Height); // TODO: Use this coordinate-transform of the graphics context
@@ -104,10 +111,39 @@ namespace cavapa
                 g.DrawImageUnscaled(background, 0, 0);
                 g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
                 g.DrawImageUnscaled(mask, 0, 0);
+
+                if (mouseDownPos != null && (ModifierKeys.HasFlag(Keys.Control) || mouseUpPos != null))
+                {
+                    Point minima = new Point();
+                    Point maxima = new Point();
+                    if (ModifierKeys.HasFlag(Keys.Control))
+                    {
+                        minima.X = Math.Min(mouseDownPos.X, mousePos.X);
+                        minima.Y = Math.Min(mouseDownPos.Y, mousePos.Y);
+                    }
+                    else
+                    {
+                        minima.X = Math.Min(mouseDownPos.X, mouseUpPos.X);
+                        minima.Y = Math.Min(mouseDownPos.Y, mouseUpPos.Y);
+                    }
+                    if (ModifierKeys.HasFlag(Keys.Control))
+                    {
+                        maxima.X = Math.Max(mouseDownPos.X, mousePos.X);
+                        maxima.Y = Math.Max(mouseDownPos.Y, mousePos.Y);
+                    }
+                    else
+                    {
+                        maxima.X = Math.Max(mouseDownPos.X, mouseUpPos.X);
+                        maxima.Y = Math.Max(mouseDownPos.Y, mouseUpPos.Y);
+                    }
+                    if (minima.X >0 || minima.Y > 0)
+                        g.DrawRectangle(new Pen(Color.Green, 2.0f), minima.X, minima.Y, maxima.X - minima.X, maxima.Y - minima.Y);
+                }
+
                 g.DrawEllipse(new Pen(Color.FromArgb(127, Color.White), 1.0f), brushRect);
                 brushRect.X += 1.0f;
                 brushRect.Y += 1.0f;
-                brushRect.Width  -= 1.0f;
+                brushRect.Width -= 1.0f;
                 brushRect.Height -= 1.0f;
                 g.DrawEllipse(new Pen(Color.FromArgb(127, Color.Black), 1.0f), brushRect);
             }
@@ -124,12 +160,18 @@ namespace cavapa
         {
             mouseLButtonDown = (e.Button == MouseButtons.Left);
             mouseRButtonDown = (e.Button == MouseButtons.Right);
+
+            if (ModifierKeys.HasFlag(Keys.Control))
+                mouseDownPos = mousePos;
         }
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
             mouseLButtonDown = false;
             mouseRButtonDown = false;
+
+            if (ModifierKeys.HasFlag(Keys.Control))
+                mouseUpPos = mousePos;
         }
 
         private void pictureBox1_MouseLeave(object sender, EventArgs e)
@@ -159,6 +201,12 @@ namespace cavapa
         private void buttonBrushReset_Click(object sender, EventArgs e)
         {
             brushRadius = 80;
+        }
+
+        private void buttonResetROI_Click(object sender, EventArgs e)
+        {
+            mouseDownPos = new Point(0, 0);
+            mouseUpPos = new Point(0, 0);
         }
 
         private void MaskForm_FormClosing(object sender, FormClosingEventArgs e)
