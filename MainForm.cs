@@ -38,11 +38,31 @@ namespace cavapa
 
             SetupLogging();
 
-            Task.Run(() =>
-            {
-                Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-                DecodeAllFramesToImages(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2);
-            });
+            //Task.Run(() =>
+            //{
+            //    Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
+
+            //    // decode all frames from url, please note that it can be a local or remote resource, e.g. string url = "../../sample_mpeg4.mp4";
+            //    //var url = "CameraB_1min.mp4";
+            //    var url = "kilp_2011_8_22-10-koris-deint.mp4";
+
+            //    // Search for file by popping dirs until we either find it or run out of pops
+            //    var current = Environment.CurrentDirectory;
+            //    while (current != null)
+            //    {
+            //        var path = Path.Combine(current, url);
+            //        if (File.Exists(path))
+            //        {
+            //            Console.WriteLine($"Sample video found in: {path}");
+            //            url = path;
+            //            break;
+            //        }
+
+            //        current = Directory.GetParent(current)?.FullName;
+            //    }
+
+            //    DecodeAllFramesToImages(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, url);
+            //});
 
             //ConfigureHWDecoder(out var deviceType);
             //var deviceType = AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2;
@@ -115,27 +135,8 @@ namespace cavapa
             ffmpeg.av_log_set_callback(logCallback);
         }
 
-        private unsafe void DecodeAllFramesToImages(AVHWDeviceType HWDevice)
+        private unsafe void DecodeAllFramesToImages(AVHWDeviceType HWDevice, string url)
         {
-            // decode all frames from url, please note that it can be a local or remote resource, e.g. string url = "../../sample_mpeg4.mp4";
-            //var url = "CameraB_1min.mp4";
-            var url = "kilp_2011_8_22-10-koris-deint.mp4";
-
-            // Search for the sample file by popping dirs until we either find it or run out of pops
-            var current = Environment.CurrentDirectory;
-            while (current != null)
-            {
-                var path = Path.Combine(current, url);
-                if (File.Exists(path))
-                {
-                    Console.WriteLine($"Sample video found in: {path}");
-                    url = path;
-                    break;
-                }
-
-                current = Directory.GetParent(current)?.FullName;
-            }
-
             using (var vsd = new VideoStreamDecoder(url, HWDevice))
             {
                 Console.WriteLine($"codec name: {vsd.CodecName}");
@@ -171,6 +172,7 @@ namespace cavapa
                         var convertedFrame = vfc.Convert(frame);
 
                         Image<Bgr, byte> currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
+                        currImage = frameSmoother.Update(currImage.Mat).ToImage<Bgr, byte>();
 
                         if (!maskSet)
                         {
@@ -179,9 +181,8 @@ namespace cavapa
                                 maskSet = true;
 
                                 if (bmp == null)
-                                {
                                     continue;
-                                }
+
                                 mask = GetMatFromSDImage(bmp).ToImage<Bgra, byte>()[2];
                                 // Clean-up and invert to form the correct mask
                                 var whiteImg = new Image<Gray, byte>(width, height);
@@ -190,8 +191,6 @@ namespace cavapa
                             }
                         }
                         
-                        currImage = frameSmoother.Update(currImage.Mat).ToImage<Bgr, byte>();
-
                         if (frameNumber % frameBlendInterval == 0)
                             background = backgroundBuilder.Update(currImage.Mat).ToImage<Bgr,byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
 
@@ -203,9 +202,7 @@ namespace cavapa
                         movement = ((moveMat - noiseFloor) * 5.0).ToImage<Bgr, byte>().Convert<Gray,byte>();
 
                         if (mask != null)
-                        {
                             movement = movement.Copy(mask);
-                        }
 
                         prevImage.Bytes = currImage.Bytes;
                         prevForeground.Bytes = currForeground.Bytes;
@@ -479,6 +476,12 @@ namespace cavapa
                 string fname = Path.GetFileName(ofd.FileName);
                 this.Text = "CAVAPA: " + fname;
                 statusLabel.Text = fname;
+
+                Task.Run(() =>
+                {
+                    Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
+                    DecodeAllFramesToImages(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName);
+                });
             }
         }
 
