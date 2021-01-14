@@ -22,7 +22,11 @@ namespace cavapa
     {
         bool maskSet = true;
         bool processingEnabled = true;
+        bool processingSleep = false;
         ProcessSettings processSettings = new ProcessSettings();
+        string videoFilepath = "";
+        string csvExportPath = "";
+        List<float> movementScores = null;
 
         public MainForm()
         {
@@ -112,7 +116,9 @@ namespace cavapa
 
         private unsafe void DecodeAllFramesToImages(AVHWDeviceType HWDevice, string url)
         {
+            videoFilepath = url;
             processingEnabled = true;
+            movementScores = new List<float>();
 
             using (var vsd = new VideoStreamDecoder(url, HWDevice))
             {
@@ -125,6 +131,7 @@ namespace cavapa
                 var sourcePixelFormat = HWDevice == AVHWDeviceType.AV_HWDEVICE_TYPE_NONE ? vsd.PixelFormat : GetHWPixelFormat(HWDevice);
                 var destinationSize = sourceSize;
                 var destinationPixelFormat = AVPixelFormat.AV_PIX_FMT_BGR24;
+
                 using (var vfc = new VideoFrameConverter(sourceSize, sourcePixelFormat, destinationSize, destinationPixelFormat))
                 {
                     var frameNumber = 0;
@@ -145,6 +152,9 @@ namespace cavapa
 
                     while (vsd.TryDecodeNextFrame(out var frame) && processingEnabled)
                     {
+                        while (processingSleep)
+                            Thread.Sleep(500);
+
                         var convertedFrame = vfc.Convert(frame);
 
                         Image<Bgr, byte> currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
@@ -187,11 +197,13 @@ namespace cavapa
                         prevImage.Bytes = currImage.Bytes;
                         prevForeground.Bytes = currForeground.Bytes;
 
-                        var moveScoreStr = $"{(movement.GetSum().Intensity * processSettings.movementScoreMul):F1}";
+                        var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
+                        var moveScoreStr = $"{moveScore:F1}";
                         moveScoreStr = moveScoreStr.PadLeft(6);
                         var status = $"Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
                         Console.WriteLine(status);
                         statusLabel.Text = status;
+                        movementScores.Add((float)moveScore);
                         frameNumber++;
 
                         movementHist = (movementHist.Mat * processSettings.movementHistoryDecay).ToImage<Gray,byte>();
@@ -386,7 +398,39 @@ namespace cavapa
 
         private void exportCSVDataFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (movementScores == null || movementScores.Count() == 0)
+                return;
 
+            processingSleep = true;
+
+            SaveFileDialog sfd = new SaveFileDialog();
+            if (File.Exists(csvExportPath))
+                sfd.FileName = csvExportPath;
+            else
+                sfd.FileName = Path.GetFileNameWithoutExtension(videoFilepath) + ".csv";
+
+            sfd.Filter = "Data files (csv,xls,xlsx)|*.csv;" +
+                        "*.Csv;*.CSV;*.xls*;*.Xls*;*.XLS*|" +
+                        "All files (*.*)|*.*";
+
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                csvExportPath = sfd.FileName;
+
+                using (TextWriter file = File.CreateText(csvExportPath)) 
+                {
+                    file.WriteLine("FrameID, MovementScore");
+
+                    var data = movementScores.ToArray();
+                    for (int i = 0; i < data.Length; i++)
+                        file.WriteLine($"{i+1},{data[i]:F3}");
+
+                    file.Flush();
+                    file.Close();
+                }
+                MessageBox.Show($"CSV Data Exported to \"{csvExportPath}\". \n{movementScores.Count():#,##0} rows written");
+            }
+            processingSleep = false;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
