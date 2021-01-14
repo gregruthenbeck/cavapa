@@ -428,7 +428,7 @@ namespace cavapa
                     file.Flush();
                     file.Close();
                 }
-                MessageBox.Show($"CSV Data Exported to \"{csvExportPath}\". \n{movementScores.Count():#,##0} rows written");
+                MessageBox.Show($"CSV Data Exported to \"{csvExportPath}\". \n{movementScores.Count():#,##0} rows written", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             processingSleep = false;
         }
