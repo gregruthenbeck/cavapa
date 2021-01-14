@@ -33,8 +33,11 @@ namespace cavapa
             ffmpeg.avformat_open_input(&pFormatContext, url, null, null).ThrowExceptionIfError();
             ffmpeg.avformat_find_stream_info(_pFormatContext, null).ThrowExceptionIfError();
             AVCodec* codec = null;
-            _streamIndex = ffmpeg.av_find_best_stream(_pFormatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0).ThrowExceptionIfError();
+            // TODO: Why is ffmpeg.AV_CODEC_FLAG_LOW_DELAY ignored!
+            _streamIndex = ffmpeg.av_find_best_stream(_pFormatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, 
+                -1, -1, &codec, ffmpeg.AV_CODEC_FLAG_LOW_DELAY).ThrowExceptionIfError();
             _pCodecContext = ffmpeg.avcodec_alloc_context3(codec);
+
             if (HWDeviceType != AVHWDeviceType.AV_HWDEVICE_TYPE_NONE)
             {
                 ffmpeg.av_hwdevice_ctx_create(&_pCodecContext->hw_device_ctx, HWDeviceType, null, null, 0).ThrowExceptionIfError();

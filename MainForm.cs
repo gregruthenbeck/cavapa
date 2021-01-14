@@ -15,6 +15,7 @@ using FFmpeg.AutoGen;
 using System.Threading;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using System.Diagnostics;
 
 namespace cavapa
 {
@@ -27,6 +28,8 @@ namespace cavapa
         string videoFilepath = "";
         string csvExportPath = "";
         List<float> movementScores = null;
+
+        Stopwatch perfTimer = new Stopwatch();
 
         public MainForm()
         {
@@ -46,6 +49,14 @@ namespace cavapa
 
             enableFlickerReductionToolStripMenuItem.Checked = (processSettings.frameBlendCount > 1);
             enableShadowReductionToolStripMenuItem.Checked = processSettings.enableShadowReduction;
+
+            processSettings.frameBlendCount = 1;
+            Task.Run(() =>
+            {
+                Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
+
+                DecodeAllFramesToImages(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../CameraB_1min.mp4");
+            });
 
             //ConfigureHWDecoder(out var deviceType);
             //var deviceType = AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2;
@@ -119,6 +130,7 @@ namespace cavapa
             videoFilepath = url;
             processingEnabled = true;
             movementScores = new List<float>();
+            perfTimer = new Stopwatch();
 
             using (var vsd = new VideoStreamDecoder(url, HWDevice))
             {
@@ -150,10 +162,15 @@ namespace cavapa
                     var movementHist = new Image<Gray, byte>(width, height);
                     Image<Gray, byte> mask = null;
 
+                    perfTimer.Start();
                     while (vsd.TryDecodeNextFrame(out var frame) && processingEnabled)
                     {
                         while (processingSleep)
+                        {
+                            perfTimer.Stop();
                             Thread.Sleep(500);
+                            perfTimer.Start();
+                        }
 
                         var convertedFrame = vfc.Convert(frame);
 
@@ -163,7 +180,8 @@ namespace cavapa
                         // Also, people are taller than bikes & balls
                         if (processSettings.enableShadowReduction)
                             currImage = currImage.Resize(width, height / 8, Emgu.CV.CvEnum.Inter.Area).Resize(width, height, Emgu.CV.CvEnum.Inter.Area);
-                        currImage = frameSmoother.Update(currImage.Mat).ToImage<Bgr, byte>();
+                        if (processSettings.frameBlendCount > 1)
+                            currImage = frameSmoother.Update(currImage.Mat).ToImage<Bgr, byte>();
 
                         if (!maskSet)
                         {
@@ -200,7 +218,7 @@ namespace cavapa
                         var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
                         var moveScoreStr = $"{moveScore:F1}";
                         moveScoreStr = moveScoreStr.PadLeft(6);
-                        var status = $"Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
+                        var status = $"Frame: {frameNumber:D6}. Frames-per-second: {(int)(1000.0 / (double)(perfTimer.ElapsedMilliseconds / (long)(frameNumber + 1)))}Hz. Movement: {moveScoreStr}";
                         Console.WriteLine(status);
                         statusLabel.Text = status;
                         movementScores.Add((float)moveScore);
@@ -218,6 +236,7 @@ namespace cavapa
                         var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
                         pictureBox1.Invoke(picMI);
                     }
+                    perfTimer.Stop();
                 }
             }
         }
@@ -428,7 +447,7 @@ namespace cavapa
                     file.Flush();
                     file.Close();
                 }
-                MessageBox.Show($"CSV Data Exported to \"{csvExportPath}\". \n{movementScores.Count():#,##0} rows written", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"CSV data successfully exported to \"{csvExportPath}\". \n\n{movementScores.Count():#,##0} rows written", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             processingSleep = false;
         }
