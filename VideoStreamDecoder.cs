@@ -48,6 +48,8 @@ namespace cavapa
             CodecName = ffmpeg.avcodec_get_name(codec->id);
             FrameSize = new Size(_pCodecContext->width, _pCodecContext->height);
             PixelFormat = _pCodecContext->pix_fmt;
+            DurationMilliseconds = _pFormatContext->duration;
+            Framerate = 25;// _pFormatContext->video_codec->supported_framerates[0].num / _pFormatContext->video_codec->supported_framerates[0].den;
 
             _pPacket = ffmpeg.av_packet_alloc();
             _pFrame = ffmpeg.av_frame_alloc();
@@ -56,6 +58,8 @@ namespace cavapa
         public string CodecName { get; }
         public Size FrameSize { get; }
         public AVPixelFormat PixelFormat { get; }
+        public long DurationMilliseconds { get; }
+        public int Framerate { get; }
 
         public void Dispose()
         {
@@ -68,6 +72,17 @@ namespace cavapa
             ffmpeg.avcodec_close(_pCodecContext);
             var pFormatContext = _pFormatContext;
             ffmpeg.avformat_close_input(&pFormatContext);
+        }
+
+        public void Seek(int frameIndex) 
+        {
+            if (_pCodecContext == null)
+                return;
+
+            var timeBase = ((_pCodecContext->time_base.num) * ffmpeg.AV_TIME_BASE) / (_pCodecContext->time_base.den);
+            var seekTarget = frameIndex * timeBase;
+            ffmpeg.av_seek_frame(_pFormatContext, -1, seekTarget, 0);
+            ffmpeg.avcodec_flush_buffers(_pCodecContext);
         }
 
         public bool TryDecodeNextFrame(out AVFrame frame)

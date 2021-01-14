@@ -31,6 +31,8 @@ namespace cavapa
 
         Stopwatch perfTimer = new Stopwatch();
 
+        private static int _trackBarPos = 0;
+
         public MainForm()
         {
             InitializeComponent();
@@ -144,6 +146,9 @@ namespace cavapa
                 var destinationSize = sourceSize;
                 var destinationPixelFormat = AVPixelFormat.AV_PIX_FMT_BGR24;
 
+                var trackBarMI = new MethodInvoker(() => trackBar1.Maximum = (int)((25L * vsd.DurationMilliseconds) / 1000000L)); // 1 second increments
+                trackBar1.Invoke(trackBarMI);
+
                 using (var vfc = new VideoFrameConverter(sourceSize, sourcePixelFormat, destinationSize, destinationPixelFormat))
                 {
                     var frameNumber = 0;
@@ -165,6 +170,16 @@ namespace cavapa
                     perfTimer.Start();
                     while (vsd.TryDecodeNextFrame(out var frame) && processingEnabled)
                     {
+                        int seekFrameNum = _trackBarPos;
+                        if (Math.Abs(frameNumber - seekFrameNum) > 100)
+                        {
+                            vsd.Seek(seekFrameNum);
+                            frameNumber = seekFrameNum;
+                        }
+
+                        var trackBarSetMI = new MethodInvoker(() => trackBar1.Value = Math.Min(frameNumber, trackBar1.Maximum-1));
+                        trackBar1.Invoke(trackBarSetMI);
+
                         while (processingSleep)
                         {
                             perfTimer.Stop();
@@ -218,7 +233,10 @@ namespace cavapa
                         var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
                         var moveScoreStr = $"{moveScore:F1}";
                         moveScoreStr = moveScoreStr.PadLeft(6);
-                        var status = $"Frame: {frameNumber:D6}. Frames-per-second: {(int)(1000.0 / (double)(perfTimer.ElapsedMilliseconds / (long)(frameNumber + 1)))}Hz. Movement: {moveScoreStr}";
+                        //var fps = (int)(1000.0 / (double)(perfTimer.ElapsedMilliseconds / (long)(frameNumber + 1)));
+                        //var status = $"Frame: {frameNumber:D6}. Frames-per-second: {fps}Hz. Movement: {moveScoreStr}";
+                        // Seeking breaks the fps calculation
+                        var status = $"Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
                         Console.WriteLine(status);
                         statusLabel.Text = status;
                         movementScores.Add((float)moveScore);
@@ -391,6 +409,7 @@ namespace cavapa
                 this.Text = "CAVAPA: " + fname;
                 statusLabel.Text = fname;
 
+                trackBar1.Value = 0;
                 Task.Run(() =>
                 {
                     Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
@@ -469,6 +488,11 @@ namespace cavapa
             var menuItem = sender as ToolStripMenuItem;
             menuItem.Checked = !menuItem.Checked;
             processSettings.enableShadowReduction = menuItem.Checked;
+        }
+
+        private void trackBar1_ValueChanged(object sender, EventArgs e)
+        {
+            _trackBarPos = trackBar1.Value;
         }
     }
 }
