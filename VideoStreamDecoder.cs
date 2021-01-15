@@ -74,7 +74,7 @@ namespace cavapa
             ffmpeg.avformat_close_input(&pFormatContext);
         }
 
-        public void Seek(int frameIndex) 
+        public void Seek(long frameIndex) 
         {
             if (_pCodecContext == null)
                 return;

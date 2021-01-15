@@ -51,6 +51,7 @@ namespace cavapa
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
+            this.statusVideoInfo = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
@@ -63,7 +64,8 @@ namespace cavapa
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusLabel,
-            this.progressBar});
+            this.progressBar,
+            this.statusVideoInfo});
             this.statusStrip1.Location = new System.Drawing.Point(0, 1124);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(1831, 32);
@@ -84,7 +86,6 @@ namespace cavapa
             // 
             // menuStrip1
             // 
-            this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1,
@@ -92,7 +93,7 @@ namespace cavapa
             this.aboutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1831, 33);
+            this.menuStrip1.Size = new System.Drawing.Size(1831, 36);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -211,12 +212,12 @@ namespace cavapa
             this.tableLayoutPanel1.Controls.Add(this.pictureBox1, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.trackBar1, 0, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 33);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 36);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 55F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1831, 1091);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1831, 1088);
             this.tableLayoutPanel1.TabIndex = 3;
             // 
             // pictureBox1
@@ -225,7 +226,7 @@ namespace cavapa
             this.pictureBox1.Location = new System.Drawing.Point(0, 0);
             this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(1831, 1036);
+            this.pictureBox1.Size = new System.Drawing.Size(1831, 1033);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 1;
             this.pictureBox1.TabStop = false;
@@ -234,7 +235,7 @@ namespace cavapa
             // 
             this.trackBar1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.trackBar1.LargeChange = 250;
-            this.trackBar1.Location = new System.Drawing.Point(0, 1036);
+            this.trackBar1.Location = new System.Drawing.Point(0, 1033);
             this.trackBar1.Margin = new System.Windows.Forms.Padding(0);
             this.trackBar1.Maximum = 6000;
             this.trackBar1.Name = "trackBar1";
@@ -243,6 +244,13 @@ namespace cavapa
             this.trackBar1.TickFrequency = 250;
             this.trackBar1.TickStyle = System.Windows.Forms.TickStyle.Both;
             this.trackBar1.ValueChanged += new System.EventHandler(this.trackBar1_ValueChanged);
+            // 
+            // statusVideoInfo
+            // 
+            this.statusVideoInfo.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.statusVideoInfo.Name = "statusVideoInfo";
+            this.statusVideoInfo.Size = new System.Drawing.Size(144, 25);
+            this.statusVideoInfo.Text = "codec WxH@fps";
             // 
             // MainForm
             // 
@@ -294,6 +302,7 @@ namespace cavapa
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.TrackBar trackBar1;
+        private System.Windows.Forms.ToolStripStatusLabel statusVideoInfo;
     }
 }
 

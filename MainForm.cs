@@ -52,12 +52,16 @@ namespace cavapa
             enableFlickerReductionToolStripMenuItem.Checked = (processSettings.frameBlendCount > 1);
             enableShadowReductionToolStripMenuItem.Checked = processSettings.enableShadowReduction;
 
+            //this.Invoke((MethodInvoker)delegate {
+            //    openVideoToolStripMenuItem_Click(this, null);
+            //});
+
             //processSettings.frameBlendCount = 1;
-            Task.Run(() =>
-            {
-                Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-                DecodeAllFramesToImages(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../CameraB_1min.mp4");
-            });
+            //Task.Run(() =>
+            //{
+            //    Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
+            //    ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../CameraB_1min.mp4");
+            //});
 
             //ConfigureHWDecoder(out var deviceType);
             //var deviceType = AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2;
@@ -126,7 +130,7 @@ namespace cavapa
             ffmpeg.av_log_set_callback(logCallback);
         }
 
-        private unsafe void DecodeAllFramesToImages(AVHWDeviceType HWDevice, string url)
+        private unsafe void ProcessFrames(AVHWDeviceType HWDevice, string url, long startFrame = -1, long endFrame = -1)
         {
             videoFilepath = url;
             processingEnabled = true;
@@ -144,9 +148,6 @@ namespace cavapa
                 var sourcePixelFormat = HWDevice == AVHWDeviceType.AV_HWDEVICE_TYPE_NONE ? vsd.PixelFormat : GetHWPixelFormat(HWDevice);
                 var destinationSize = sourceSize;
                 var destinationPixelFormat = AVPixelFormat.AV_PIX_FMT_BGR24;
-
-                var trackBarMI = new MethodInvoker(() => trackBar1.Maximum = (int)((25L * vsd.DurationMilliseconds) / 1000000L)); // 1 second increments
-                trackBar1.Invoke(trackBarMI);
 
                 using (var vfc = new VideoFrameConverter(sourceSize, sourcePixelFormat, destinationSize, destinationPixelFormat))
                 {
@@ -170,7 +171,7 @@ namespace cavapa
                     while (vsd.TryDecodeNextFrame(out var frame) && processingEnabled)
                     {
                         int seekFrameNum = _trackBarPos;
-                        if (Math.Abs(frameNumber - seekFrameNum) > 100)
+                        if (Math.Abs(frameNumber - seekFrameNum) > 250)
                         {
                             vsd.Seek(seekFrameNum);
                             frameNumber = seekFrameNum;
@@ -410,10 +411,22 @@ namespace cavapa
                 statusLabel.Text = fname;
 
                 trackBar1.Value = 0;
+
+                var mediaInfo = new MediaInfoDotNet.MediaFile(ofd.FileName);
+                var videoInfo = mediaInfo.Video[0];
+                var kbpsStr = "";
+                int bps = 0;
+                if (int.TryParse(videoInfo.bitRate, out bps))
+                    kbpsStr = $" {bps/1000}kbps";
+                statusVideoInfo.Text = $"{Path.GetExtension(ofd.FileName)} ({videoInfo.internetMediaType}{kbpsStr}) {videoInfo.Width}x{videoInfo.Height}@{videoInfo.frameRate}fps";
+                Console.WriteLine("Video Format: " + statusVideoInfo.Text);
+
+                trackBar1.Maximum = videoInfo.frameCount + 1;
+
                 Task.Run(() =>
                 {
                     Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-                    DecodeAllFramesToImages(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName);
+                    ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName);
                 });
             }
         }
