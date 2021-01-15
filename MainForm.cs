@@ -52,11 +52,10 @@ namespace cavapa
             enableFlickerReductionToolStripMenuItem.Checked = (processSettings.frameBlendCount > 1);
             enableShadowReductionToolStripMenuItem.Checked = processSettings.enableShadowReduction;
 
-            processSettings.frameBlendCount = 1;
+            //processSettings.frameBlendCount = 1;
             Task.Run(() =>
             {
                 Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-
                 DecodeAllFramesToImages(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../CameraB_1min.mp4");
             });
 
@@ -196,7 +195,7 @@ namespace cavapa
                         if (processSettings.enableShadowReduction)
                             currImage = currImage.Resize(width, height / 8, Emgu.CV.CvEnum.Inter.Area).Resize(width, height, Emgu.CV.CvEnum.Inter.Area);
                         if (processSettings.frameBlendCount > 1)
-                            currImage = frameSmoother.Update(currImage.Mat).ToImage<Bgr, byte>();
+                            currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
 
                         if (!maskSet)
                         {
@@ -216,7 +215,7 @@ namespace cavapa
                         }
                         
                         if (frameNumber % processSettings.backgroundFrameBlendInterval == 0)
-                            background = backgroundBuilder.Update(currImage.Mat).ToImage<Bgr,byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
+                            background = backgroundBuilder.Update(currImage.ToBitmap()).ToImage<Bgr,byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
 
                         Mat foregroundMat = background.Not().Mat + currImage.Mat;
                         currForeground = foregroundMat.ToImage<Bgr, byte>();
@@ -246,11 +245,12 @@ namespace cavapa
                         movementHist = (movementHist.Mat + movement.Mat).ToImage<Gray, byte>();
 
                         // re-init to see un-processed input frame
-                        currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
+                        //currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
                         Image<Bgr,byte> moveImg = movementHist.Convert<Bgr,byte>();
                         moveImg[0] = new Image<Gray, byte>(width, height); // Make the blue-channel zero
                         moveImg[2] = new Image<Gray, byte>(width, height); // Make the red-channel zero
-                        //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = moveImg.ToBitmap());
+                        //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = background.ToBitmap());
+                        //pictureBox1.Invoke(m);
                         var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
                         pictureBox1.Invoke(picMI);
                     }
