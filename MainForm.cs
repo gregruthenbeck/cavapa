@@ -26,8 +26,12 @@ namespace cavapa
         bool processingSleep = false;
         ProcessSettings processSettings = new ProcessSettings();
         string videoFilepath = "";
+        long videoFrameCount = 0;
+        float videoFrameRate = 25.0f;
         string csvExportPath = "";
-        List<float> movementScores = null;
+        float[] movementScores = null;
+        bool processMultithreaded = false;
+        long processedFrameCount = 0L;
 
         Stopwatch perfTimer = new Stopwatch();
 
@@ -130,11 +134,10 @@ namespace cavapa
             ffmpeg.av_log_set_callback(logCallback);
         }
 
-        private unsafe void ProcessFrames(AVHWDeviceType HWDevice, string url, long startFrame = -1, long endFrame = -1)
+        private unsafe void ProcessFrames(AVHWDeviceType HWDevice, string url, long startFrame = 0, long endFrame = long.MaxValue)
         {
             videoFilepath = url;
             processingEnabled = true;
-            movementScores = new List<float>();
             perfTimer = new Stopwatch();
 
             using (var vsd = new VideoStreamDecoder(url, HWDevice))
@@ -151,7 +154,9 @@ namespace cavapa
 
                 using (var vfc = new VideoFrameConverter(sourceSize, sourcePixelFormat, destinationSize, destinationPixelFormat))
                 {
-                    var frameNumber = 0;
+                    var frameNumber = startFrame;
+                    if (startFrame != 0)
+                        vsd.Seek(startFrame);
                     //byte[] currFrameData = new byte[destinationSize.Width * destinationSize.Height * 3];
                     //byte[] prevFrameData = new byte[destinationSize.Width * destinationSize.Height * 3];
                     var width = destinationSize.Width;
@@ -168,17 +173,21 @@ namespace cavapa
                     Image<Gray, byte> mask = null;
 
                     perfTimer.Start();
-                    while (vsd.TryDecodeNextFrame(out var frame) && processingEnabled)
+                    while (vsd.TryDecodeNextFrame(out var frame) && 
+                           (frameNumber < endFrame) && processingEnabled)
                     {
                         int seekFrameNum = _trackBarPos;
-                        if (Math.Abs(frameNumber - seekFrameNum) > 250)
+                        if (!processMultithreaded)
                         {
-                            vsd.Seek(seekFrameNum);
-                            frameNumber = seekFrameNum;
-                        }
+                            if (Math.Abs(frameNumber - seekFrameNum) > 250)
+                            {
+                                vsd.Seek(seekFrameNum);
+                                frameNumber = seekFrameNum;
+                            }
 
-                        var trackBarSetMI = new MethodInvoker(() => trackBar1.Value = Math.Min(frameNumber, trackBar1.Maximum-1));
-                        trackBar1.Invoke(trackBarSetMI);
+                            var trackBarSetMI = new MethodInvoker(() => trackBar1.Value = Math.Min((int)frameNumber, trackBar1.Maximum - 1));
+                            trackBar1.Invoke(trackBarSetMI);
+                        }
 
                         while (processingSleep)
                         {
@@ -239,7 +248,7 @@ namespace cavapa
                         var status = $"Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
                         Console.WriteLine(status);
                         statusLabel.Text = status;
-                        movementScores.Add((float)moveScore);
+                        movementScores[frameNumber]= (float)moveScore;
                         frameNumber++;
 
                         movementHist = (movementHist.Mat * processSettings.movementHistoryDecay).ToImage<Gray,byte>();
@@ -252,8 +261,11 @@ namespace cavapa
                         moveImg[2] = new Image<Gray, byte>(width, height); // Make the red-channel zero
                         //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = background.ToBitmap());
                         //pictureBox1.Invoke(m);
-                        var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
-                        pictureBox1.Invoke(picMI);
+                        if (!processMultithreaded)
+                        {
+                            var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
+                            pictureBox1.Invoke(picMI);
+                        }
                     }
                     perfTimer.Stop();
                 }
@@ -421,12 +433,40 @@ namespace cavapa
                 statusVideoInfo.Text = $"{Path.GetExtension(ofd.FileName)} ({videoInfo.internetMediaType}{kbpsStr}) {videoInfo.Width}x{videoInfo.Height}@{videoInfo.frameRate}fps";
                 Console.WriteLine("Video Format: " + statusVideoInfo.Text);
 
+                videoFrameRate = videoInfo.frameRate;
+                videoFrameCount = videoInfo.frameCount;
                 trackBar1.Maximum = videoInfo.frameCount + 1;
 
+                processedFrameCount = 0L;
+                movementScores = new float[videoFrameCount];
+                for (int i = 0; i < movementScores.Length; i++)
+                {
+                    movementScores[i] = float.NegativeInfinity;
+                }
+
+                processMultithreaded = true;
+                int numChunks = 4;
+                long frameStride = videoFrameCount / (long)numChunks;
+                long marker = 0L;
                 Task.Run(() =>
                 {
                     Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-                    ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName);
+                    ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName, marker, marker += frameStride);
+                });
+                Task.Run(() =>
+                {
+                    Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
+                    ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName, marker, marker += frameStride);
+                });
+                Task.Run(() =>
+                {
+                    Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
+                    ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName, marker, marker += frameStride);
+                });
+                Task.Run(() =>
+                {
+                    Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
+                    ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName, marker, marker += frameStride);
                 });
             }
         }
@@ -472,14 +512,14 @@ namespace cavapa
                 {
                     file.WriteLine("FrameID, MovementScore");
 
-                    var data = movementScores.ToArray();
+                    var data = movementScores;
                     for (int i = 0; i < data.Length; i++)
                         file.WriteLine($"{i+1},{data[i]:F3}");
 
                     file.Flush();
                     file.Close();
                 }
-                MessageBox.Show($"CSV data successfully exported to \"{csvExportPath}\". \n\n{movementScores.Count():#,##0} rows written", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"CSV data successfully exported to \"{csvExportPath}\". \n\n{movementScores.Length:#,##0} rows written", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             processingSleep = false;
         }
