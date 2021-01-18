@@ -71,6 +71,7 @@
     <Compile Include="AboutForm.Designer.cs">
       <DependentUpon>AboutForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="BGBuilder.cs" />
     <Compile Include="FFmpegBinariesHelper.cs" />
     <Compile Include="FFmpegHelper.cs" />
     <Compile Include="FrameBlender.cs" />
@@ -88,6 +89,12 @@
       <DependentUpon>MaskForm.cs</DependentUpon>
     </Compile>
     <Compile Include="MediaDecoder.cs" />
+    <Compile Include="ProcessingModalDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProcessingModalDialog.Designer.cs">
+      <DependentUpon>ProcessingModalDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="ProcessSettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -101,6 +108,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MaskForm.resx">
       <DependentUpon>MaskForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProcessingModalDialog.resx">
+      <DependentUpon>ProcessingModalDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
