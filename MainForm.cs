@@ -33,8 +33,11 @@ namespace cavapa
         float[] movementScores = null;
         bool processMultithreaded = false;
         long processedFrameCount = 0L;
+        long frameNumber = 0L;
 
         Stopwatch perfTimer = new Stopwatch();
+        Bitmap bmpChart = null;
+        PictureBox pictureBoxChart = null;
 
         private static int _trackBarPos = 0;
 
@@ -63,10 +66,45 @@ namespace cavapa
 
             enableFlickerReductionToolStripMenuItem.Checked = (processSettings.frameBlendCount > 1);
             enableShadowReductionToolStripMenuItem.Checked = processSettings.enableShadowReduction;
+
+            this.tableLayoutPanel1.RowCount = 3;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 120F));
+            pictureBoxChart = new PictureBox();
+            bmpChart = new Bitmap(this.tableLayoutPanel1.Size.Width, 120, PixelFormat.Format32bppArgb);
+            pictureBoxChart.Size = new Size(bmpChart.Width, bmpChart.Height);
+            this.tableLayoutPanel1.Controls.Add(this.pictureBoxChart, 0, 2);
         }
 
         private void Form1_Shown(object sender, EventArgs e)
         {
+        }
+
+        private void UpdateChart()
+        {
+            int interval = Math.Max((int)(videoFrameCount / (2L * (long)tableLayoutPanel1.Width)), 1); // Max(,1) to handle short videos
+
+            if (frameNumber % interval != 0 ||
+                frameNumber / interval < 2)
+                return;
+
+            PointF[] points = new PointF[videoFrameCount / interval];
+            SizeF s = new SizeF(.5f, 0.06f);
+            for (int i = 0; i < points.Length; i++)
+            {
+                points[i] = new PointF((float)i * s.Width, bmpChart.Height - movementScores[i * interval] * s.Height - 1);
+                points[i].Y = Math.Min(points[i].Y, (float)bmpChart.Height);
+            }
+            points[0] = new PointF(0F, (float)(bmpChart.Height - 1));
+
+            using (Graphics g = Graphics.FromImage(bmpChart))
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                g.FillRectangle(Brushes.LightGray, 0, 0, bmpChart.Width, bmpChart.Height);
+                g.DrawLines(Pens.Blue, points);
+            }
+
+            MethodInvoker m = new MethodInvoker(() => pictureBoxChart.Image = bmpChart);
+            pictureBoxChart.Invoke(m);
         }
 
         private static void ConfigureHWDecoder(out AVHWDeviceType HWtype)
@@ -144,10 +182,12 @@ namespace cavapa
                 var sourcePixelFormat = HWDevice == AVHWDeviceType.AV_HWDEVICE_TYPE_NONE ? vsd.PixelFormat : GetHWPixelFormat(HWDevice);
                 var destinationSize = sourceSize;
                 var destinationPixelFormat = AVPixelFormat.AV_PIX_FMT_BGR24;
+                int framesSinceSeek = 0;
+                int framesSinceSeekThresh = 5;
 
                 using (var vfc = new VideoFrameConverter(sourceSize, sourcePixelFormat, destinationSize, destinationPixelFormat))
                 {
-                    var frameNumber = startFrame;
+                    frameNumber = startFrame;
                     if (startFrame != 0)
                         vsd.Seek(startFrame);
                     //byte[] currFrameData = new byte[destinationSize.Width * destinationSize.Height * 3];
@@ -183,11 +223,15 @@ namespace cavapa
                             {
                                 vsd.Seek(seekFrameNum);
                                 frameNumber = seekFrameNum;
+                                framesSinceSeek = 0;
                             }
 
                             var trackBarSetMI = new MethodInvoker(() => trackBar1.Value = Math.Min((int)frameNumber, trackBar1.Maximum - 1));
                             trackBar1.Invoke(trackBarSetMI);
                         }
+
+                        if (framesSinceSeek < framesSinceSeekThresh)
+                            ++framesSinceSeek;
 
                         while (processingSleep)
                         {
@@ -278,7 +322,9 @@ namespace cavapa
                             var status = $"[ChunkId: {chunkId}] Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
                             //Console.WriteLine(status);
                             statusLabel.Text = status;
-                            movementScores[frameNumber] = (float)moveScore;
+                            if (framesSinceSeek == framesSinceSeekThresh)
+                                movementScores[frameNumber] = (float)moveScore;
+                            UpdateChart();
                         }
                         frameNumber++;
 
