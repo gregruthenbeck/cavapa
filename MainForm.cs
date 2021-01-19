@@ -514,6 +514,11 @@ namespace cavapa
                 videoFrameCount = videoInfo.frameCount;
                 trackBar1.Maximum = videoInfo.frameCount + 1;
 
+                if (videoInfo.Width >= 720) {
+                    processSettings.frameBlendCount = 1;
+                    enableFlickerReductionToolStripMenuItem.Checked = false;
+                }
+
                 processedFrameCount = 0L;
                 movementScores = new float[videoFrameCount];
                 for (int i = 0; i < movementScores.Length; i++)
