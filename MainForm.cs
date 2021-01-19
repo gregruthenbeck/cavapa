@@ -47,14 +47,18 @@ namespace cavapa
         {
             Console.WriteLine("Current directory: " + Environment.CurrentDirectory);
             Console.WriteLine("Running in {0}-bit mode.", Environment.Is64BitProcess ? "64" : "32");
-            Console.WriteLine($"Number of processors: {Environment.ProcessorCount}");
+            Console.WriteLine("Number of processors: {0}", Environment.ProcessorCount);
             FFmpegBinariesHelper.RegisterFFmpegBinaries();
             Console.WriteLine($"FFmpeg version info: {ffmpeg.av_version_info()}");
             SetupLogging();
 
+            processSettings.movementHistoryDecay = 0.85;
+            //processSettings.frameBlendCount = 2;
+            //processSettings.movementMultiplier = 20.0;
+
             foreach (var f in Directory.GetFiles(".", "bg*.jpg"))
                 File.Delete(f);
-            var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../CameraB_cut.mp4");
+            //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../CameraB_cut.mp4");
             //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../kilp_2011_8_22-10-koris-deint.mp4");
 
             enableFlickerReductionToolStripMenuItem.Checked = (processSettings.frameBlendCount > 1);
@@ -124,7 +128,7 @@ namespace cavapa
             processingEnabled = true;
             perfTimer = new Stopwatch();
             long leadInFrames = processSettings.backgroundFrameBlendCount * processSettings.backgroundFrameBlendInterval;
-            if (leadInFrames < startFrame) // dont't do leadIn if we're too close to the start of the video
+            if (!processMultithreaded && leadInFrames < startFrame) // dont't do leadIn if we're too close to the start of the video
                 startFrame = startFrame - leadInFrames;
             else
                 leadInFrames = 0L;
@@ -152,14 +156,16 @@ namespace cavapa
                     var height = destinationSize.Height;
 
                     Image<Bgr, byte> prevImage = new Image<Bgr, byte>(width, height); //Image Class from Emgu.CV
-                    FrameBlender[] backgroundBuilders = new FrameBlender[processSettings.backgroundFrameBlendInterval];
-                    Bitmap[] bgs = new Bitmap[processSettings.backgroundFrameBlendInterval];
-                    for (int i = 0; i < backgroundBuilders.Length; i++) {
-                        backgroundBuilders[i] = new FrameBlender(width, height, processSettings.backgroundFrameBlendCount);
-                        bgs[i] = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-                    }
+                    //FrameBlender[] backgroundBuilders = new FrameBlender[processSettings.backgroundFrameBlendInterval];
+                    //Bitmap[] bgs = new Bitmap[processSettings.backgroundFrameBlendInterval];
+                    //for (int i = 0; i < backgroundBuilders.Length; i++) {
+                    //    backgroundBuilders[i] = new FrameBlender(width, height, processSettings.backgroundFrameBlendCount);
+                    //    bgs[i] = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                    //}
                     FrameBlender frameSmoother = new FrameBlender(width, height, processSettings.frameBlendCount);
-                    var background = new Image<Bgr, byte>(width, height);
+                    Image<Bgra, byte> background = null;
+                    var bgBuilder = new Emgu.CV.BackgroundSubtractorMOG2(250, 16, false);
+                    Image<Gray, byte> foregroundMask = new Image<Gray, byte>(width, height);
                     var currForeground = new Image<Bgr, byte>(width, height);
                     var prevForeground = new Image<Bgr, byte>(width, height);
                     var movement = new Image<Gray, byte>(width, height);
@@ -198,8 +204,9 @@ namespace cavapa
                         // Also, people are taller than bikes & balls
                         if (processSettings.enableShadowReduction)
                             currImage = currImage.Resize(width, height / 8, Emgu.CV.CvEnum.Inter.Area).Resize(width, height, Emgu.CV.CvEnum.Inter.Area);
-                        if (processSettings.frameBlendCount > 1)
-                            currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
+                        //if (processSettings.frameBlendCount > 1)
+                        //    currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
+                        currImage = (0.9 * currImage.Mat + 0.1 * prevImage.Mat).ToImage<Bgr, byte>();
 
                         if (!maskSet)
                         {
@@ -219,12 +226,23 @@ namespace cavapa
                         }
 
 
-                        bgs[frameNumber % processSettings.backgroundFrameBlendInterval] = backgroundBuilders[frameNumber % processSettings.backgroundFrameBlendInterval].Update(currImage.ToBitmap());//.ToImage<Bgr, byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
-                        var blender = new FrameBlender(width, height, backgroundBuilders.Length);
-                        var bg = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-                        for (int i = 0; i < backgroundBuilders.Length; i++)
-                            bg = blender.Update(bgs[i]);
-                        background = bg.ToImage<Bgr, byte>();
+                        //bgs[frameNumber % processSettings.backgroundFrameBlendInterval] = backgroundBuilders[frameNumber % processSettings.backgroundFrameBlendInterval].Update(currImage.ToBitmap());//.ToImage<Bgr, byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
+                        //var blender = new FrameBlender(width, height, backgroundBuilders.Length);
+                        //var bg = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                        //for (int i = 0; i < backgroundBuilders.Length; i++)
+                        //    bg = blender.Update(bgs[i]);
+                        //background = bg.ToImage<Bgr, byte>();
+
+                        bgBuilder.Apply(currImage, foregroundMask);
+                        if (frameNumber == 0L)
+                            background = currImage.Convert<Bgra, byte>();
+                        else
+                        {
+                            Image<Bgra, byte> newBg = currImage.Convert<Bgra, byte>();
+                            newBg[3].SetValue(1, foregroundMask.Not());
+                            background[3].SetValue(1);
+                            background = (background.Mat * .95 + newBg.Mat * .05).ToImage<Bgra, byte>();
+                        }
 
                         if (leadInFrames > 4L)
                         {
@@ -235,15 +253,17 @@ namespace cavapa
                         else if (leadInFrames > 0L) 
                             leadInFrames--;
 
-                        Mat foregroundMat = background.Not().Mat + currImage.Mat;
+                        Mat foregroundMat = background.Convert<Bgr,byte>().Not().Mat + currImage.Mat;
                         currForeground = foregroundMat.ToImage<Bgr, byte>();
+                        //currForeground = currImage.Copy(foregroundMask.Not());
 
-                        Mat moveMat = foregroundMat - prevForeground.Mat;
+                        Mat moveMat = currForeground.Mat - prevForeground.Mat;
                         movement = ((moveMat - processSettings.movementNoiseFloor) * processSettings.movementMultiplier).ToImage<Bgr, byte>().Convert<Gray,byte>();
 
                         if (mask != null)
                             movement = movement.Copy(mask);
 
+                        currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
                         prevImage.Bytes = currImage.Bytes;
                         prevForeground.Bytes = currForeground.Bytes;
 
@@ -272,10 +292,10 @@ namespace cavapa
                             Image<Bgr,byte> moveImg = movementHist.Convert<Bgr,byte>();
                             moveImg[0] = new Image<Gray, byte>(width, height); // Make the blue-channel zero
                             moveImg[2] = new Image<Gray, byte>(width, height); // Make the red-channel zero
-                            MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = background.ToBitmap());
-                            pictureBox1.Invoke(m);
-                            //var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
-                            //pictureBox1.Invoke(picMI);
+                            //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = background.ToBitmap());
+                            //pictureBox1.Invoke(m);
+                            var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
+                            pictureBox1.Invoke(picMI);
                         }
                     }
                     perfTimer.Stop();
