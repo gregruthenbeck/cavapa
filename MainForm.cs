@@ -36,7 +36,7 @@ namespace cavapa
         long processedFrameCount = 0L;
         long frameNumber = 0L;
 
-        Stopwatch perfTimer = new Stopwatch();
+        FPSTimer perfTimer = null;
         Bitmap bmpChart = null;
         PictureBox pictureBoxChart = null;
 
@@ -166,7 +166,7 @@ namespace cavapa
         {
             videoFilepath = url;
             processingEnabled = true;
-            perfTimer = new Stopwatch();
+            perfTimer = new FPSTimer();
             long leadInFrames = processSettings.backgroundFrameBlendCount * processSettings.backgroundFrameBlendInterval;
             if (!processMultithreaded && leadInFrames < startFrame) // dont't do leadIn if we're too close to the start of the video
                 startFrame = startFrame - leadInFrames;
@@ -214,7 +214,6 @@ namespace cavapa
                     var movementHist = new Image<Gray, byte>(width, height);
                     Image<Gray, byte> mask = null;
 
-                    perfTimer.Start();
                     while (vsd.TryDecodeNextFrame(out var frame) && 
                            (frameNumber < endFrame) && processingEnabled)
                     {
@@ -236,11 +235,7 @@ namespace cavapa
                             ++framesSinceSeek;
 
                         while (processingSleep)
-                        {
-                            perfTimer.Stop();
                             Thread.Sleep(500);
-                            perfTimer.Start();
-                        }
 
                         var convertedFrame = vfc.Convert(frame);
 
@@ -250,9 +245,10 @@ namespace cavapa
                         // Also, people are taller than bikes & balls
                         if (processSettings.enableShadowReduction)
                             currImage = currImage.Resize(width, height / 8, Emgu.CV.CvEnum.Inter.Area).Resize(width, height, Emgu.CV.CvEnum.Inter.Area);
-                        //if (processSettings.frameBlendCount > 1)
-                        //    currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
-                        currImage = (0.9 * currImage.Mat + 0.1 * prevImage.Mat).ToImage<Bgr, byte>();
+                        if (processSettings.frameBlendCount > 1)
+                            currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
+                        else
+                            currImage = (0.9 * currImage.Mat + 0.1 * prevImage.Mat).ToImage<Bgr, byte>();
 
                         if (!maskSet)
                         {
@@ -270,14 +266,6 @@ namespace cavapa
                                 mask = whiteImg.Copy(mask).Not();
                             }
                         }
-
-
-                        //bgs[frameNumber % processSettings.backgroundFrameBlendInterval] = backgroundBuilders[frameNumber % processSettings.backgroundFrameBlendInterval].Update(currImage.ToBitmap());//.ToImage<Bgr, byte>(); //.Save($"bg{frameNumber}.jpg", ImageFormat.Jpeg);
-                        //var blender = new FrameBlender(width, height, backgroundBuilders.Length);
-                        //var bg = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-                        //for (int i = 0; i < backgroundBuilders.Length; i++)
-                        //    bg = blender.Update(bgs[i]);
-                        //background = bg.ToImage<Bgr, byte>();
 
                         bgBuilder.Apply(currImage, foregroundMask);
                         if (frameNumber == 0L)
@@ -318,12 +306,11 @@ namespace cavapa
                             var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
                             var moveScoreStr = $"{moveScore:F1}";
                             moveScoreStr = moveScoreStr.PadLeft(6);
-                            //var fps = (int)(1000.0 / (double)(perfTimer.ElapsedMilliseconds / (long)(frameNumber + 1)));
                             //var status = $"Frame: {frameNumber:D6}. Frames-per-second: {fps}Hz. Movement: {moveScoreStr}";
                             // Seeking breaks the fps calculation
                             var status = $"[ChunkId: {chunkId}] Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
                             //Console.WriteLine(status);
-                            statusLabel.Text = status;
+                            statusLabel.Text = $"Processing rate {perfTimer.Update()}fps";
                             if (framesSinceSeek == framesSinceSeekThresh)
                             {
                                 movementScores[frameNumber] = (float)moveScore;
@@ -331,6 +318,7 @@ namespace cavapa
                                 UpdateChart();
                             }
                         }
+                        processedFrameCount++;
                         frameNumber++;
 
                         if (!processMultithreaded)
@@ -349,7 +337,6 @@ namespace cavapa
                             pictureBox1.Invoke(picMI);
                         }
                     }
-                    perfTimer.Stop();
                 }
             }
         }
@@ -526,7 +513,7 @@ namespace cavapa
                 }
                 else
                 {
-                    processSettings.frameBlendCount = 4;
+                    processSettings.frameBlendCount = 3;
                     enableFlickerReductionToolStripMenuItem.Checked = true;
                 }
 
@@ -538,13 +525,13 @@ namespace cavapa
                     movementScores[i] = float.NegativeInfinity;
                 }
 
-                //processMultithreaded = true;
                 Task.Run(() =>
                 {
                     Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
                     ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName);
                 });
 
+                //processMultithreaded = true;
                 //int numChunks = Math.Min(Environment.ProcessorCount, 6); // Low-performance CPUs use under 4 threads
                 //long frameStride = videoFrameCount / (long)numChunks;
                 //long marker = 0L;

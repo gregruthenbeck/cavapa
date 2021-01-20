@@ -74,6 +74,7 @@
     <Compile Include="BGBuilder.cs" />
     <Compile Include="FFmpegBinariesHelper.cs" />
     <Compile Include="FFmpegHelper.cs" />
+    <Compile Include="FPSTimer.cs" />
     <Compile Include="FrameBlender.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
