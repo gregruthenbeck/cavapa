@@ -60,8 +60,9 @@ namespace cavapa
             //processSettings.frameBlendCount = 2;
             //processSettings.movementMultiplier = 20.0;
 
-            foreach (var f in Directory.GetFiles(".", "bg*.jpg"))
-                File.Delete(f);
+            // Test BGBuilder
+            //foreach (var f in Directory.GetFiles(".", "bg*.jpg"))
+            //    File.Delete(f);
             //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../CameraB_cut.mp4");
             //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../kilp_2011_8_22-10-koris-deint.mp4");
 
