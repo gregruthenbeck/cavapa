@@ -31,6 +31,7 @@ namespace cavapa
         long videoFrameCount = 0;
         float videoFrameRate = 25.0f;
         float[] movementScores = null;
+        float movementScoreMax = 0;
         bool processMultithreaded = false;
         long processedFrameCount = 0L;
         long frameNumber = 0L;
@@ -72,6 +73,7 @@ namespace cavapa
             pictureBoxChart = new PictureBox();
             bmpChart = new Bitmap(this.tableLayoutPanel1.Size.Width, 120, PixelFormat.Format32bppArgb);
             pictureBoxChart.Size = new Size(bmpChart.Width, bmpChart.Height);
+            pictureBoxChart.Margin = new Padding(0);
             this.tableLayoutPanel1.Controls.Add(this.pictureBoxChart, 0, 2);
         }
 
@@ -88,11 +90,11 @@ namespace cavapa
                 return;
 
             PointF[] points = new PointF[videoFrameCount / interval];
-            SizeF s = new SizeF(.5f, 0.06f);
+            SizeF s = new SizeF(.5f, (float)bmpChart.Height / movementScoreMax);
             for (int i = 0; i < points.Length; i++)
             {
-                points[i] = new PointF((float)i * s.Width, bmpChart.Height - movementScores[i * interval] * s.Height - 1);
-                points[i].Y = Math.Min(points[i].Y, (float)bmpChart.Height);
+                points[i] = new PointF((float)i * s.Width, bmpChart.Height - movementScores[i * interval] * s.Height);
+                points[i].Y = Math.Min(points[i].Y, (float)bmpChart.Height-2.0f);
             }
             points[0] = new PointF(0F, (float)(bmpChart.Height - 1));
 
@@ -323,8 +325,11 @@ namespace cavapa
                             //Console.WriteLine(status);
                             statusLabel.Text = status;
                             if (framesSinceSeek == framesSinceSeekThresh)
+                            {
                                 movementScores[frameNumber] = (float)moveScore;
-                            UpdateChart();
+                                movementScoreMax = Math.Max(movementScoreMax, (float)moveScore);
+                                UpdateChart();
+                            }
                         }
                         frameNumber++;
 
@@ -514,12 +519,19 @@ namespace cavapa
                 videoFrameCount = videoInfo.frameCount;
                 trackBar1.Maximum = videoInfo.frameCount + 1;
 
-                if (videoInfo.Width >= 720) {
+                if (videoInfo.Width >= 720)
+                {
                     processSettings.frameBlendCount = 1;
                     enableFlickerReductionToolStripMenuItem.Checked = false;
                 }
+                else
+                {
+                    processSettings.frameBlendCount = 4;
+                    enableFlickerReductionToolStripMenuItem.Checked = true;
+                }
 
                 processedFrameCount = 0L;
+                movementScoreMax = 0;
                 movementScores = new float[videoFrameCount];
                 for (int i = 0; i < movementScores.Length; i++)
                 {
