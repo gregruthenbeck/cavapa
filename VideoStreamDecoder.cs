@@ -81,8 +81,15 @@ namespace cavapa
 
             var timeBase = ((_pCodecContext->time_base.num) * ffmpeg.AV_TIME_BASE) / (_pCodecContext->time_base.den);
             var seekTarget = frameIndex * timeBase;
-            ffmpeg.av_seek_frame(_pFormatContext, -1, seekTarget, 0);
-            ffmpeg.avcodec_flush_buffers(_pCodecContext);
+
+            try
+            {
+                ffmpeg.av_seek_frame(_pFormatContext, -1, seekTarget, ffmpeg.AVSEEK_FLAG_ANY);
+                ffmpeg.avcodec_flush_buffers(_pCodecContext);
+            }
+            finally 
+            {
+            }
         }
 
         public bool TryDecodeNextFrame(out AVFrame frame)

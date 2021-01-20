@@ -214,8 +214,9 @@ namespace cavapa
                     var movementHist = new Image<Gray, byte>(width, height);
                     Image<Gray, byte> mask = null;
 
-                    while (vsd.TryDecodeNextFrame(out var frame) && 
-                           (frameNumber < endFrame) && processingEnabled)
+                    bool decoderActive = true;
+                    AVFrame frame;
+                    while (decoderActive && (frameNumber < endFrame) && processingEnabled)
                     {
                         int seekFrameNum = _trackBarPos;
                         if (!processMultithreaded)
@@ -229,6 +230,15 @@ namespace cavapa
 
                             var trackBarSetMI = new MethodInvoker(() => trackBar1.Value = Math.Min((int)frameNumber, trackBar1.Maximum - 1));
                             trackBar1.Invoke(trackBarSetMI);
+                        }
+
+                        try
+                        {
+                            decoderActive = vsd.TryDecodeNextFrame(out frame);
+                        }
+                        catch
+                        {
+                            continue;
                         }
 
                         if (framesSinceSeek < framesSinceSeekThresh)
@@ -245,10 +255,14 @@ namespace cavapa
                         // Also, people are taller than bikes & balls
                         if (processSettings.enableShadowReduction)
                             currImage = currImage.Resize(width, height / 8, Emgu.CV.CvEnum.Inter.Area).Resize(width, height, Emgu.CV.CvEnum.Inter.Area);
-                        if (processSettings.frameBlendCount > 1)
-                            currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
-                        else
-                            currImage = (0.9 * currImage.Mat + 0.1 * prevImage.Mat).ToImage<Bgr, byte>();
+
+                        //if (processSettings.frameBlendCount == 1)
+                        //    // Use 10% of previous frame for some speckle-noise & flicker reduction
+                        //    currImage = (0.9 * currImage.Mat + 0.1 * prevImage.Mat).ToImage<Bgr, byte>();
+                        //else
+
+                        // Smooth using multiple frames
+                        currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
 
                         if (!maskSet)
                         {
@@ -304,11 +318,9 @@ namespace cavapa
                         if (leadInFrames == 0)
                         {
                             var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
-                            var moveScoreStr = $"{moveScore:F1}";
-                            moveScoreStr = moveScoreStr.PadLeft(6);
-                            //var status = $"Frame: {frameNumber:D6}. Frames-per-second: {fps}Hz. Movement: {moveScoreStr}";
-                            // Seeking breaks the fps calculation
-                            var status = $"[ChunkId: {chunkId}] Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
+                            //var moveScoreStr = $"{moveScore:F1}";
+                            //moveScoreStr = moveScoreStr.PadLeft(6);
+                            //var status = $"[ChunkId: {chunkId}] Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
                             //Console.WriteLine(status);
                             statusLabel.Text = $"Processing rate {perfTimer.Update()}fps";
                             if (framesSinceSeek == framesSinceSeekThresh)
@@ -508,12 +520,12 @@ namespace cavapa
 
                 if (videoInfo.Width >= 720)
                 {
-                    processSettings.frameBlendCount = 1;
+                    processSettings.frameBlendCount = 2;
                     enableFlickerReductionToolStripMenuItem.Checked = false;
                 }
                 else
                 {
-                    processSettings.frameBlendCount = 3;
+                    processSettings.frameBlendCount = 4;
                     enableFlickerReductionToolStripMenuItem.Checked = true;
                 }
 
@@ -617,7 +629,7 @@ namespace cavapa
         {
             var menuItem = sender as ToolStripMenuItem;
             menuItem.Checked = !menuItem.Checked;
-            processSettings.frameBlendCount = (menuItem.Checked ? 3 : 1);
+            processSettings.frameBlendCount = (menuItem.Checked ? 4 : 2);
         }
 
         private void enableShadowReductionToolStripMenuItem_Click(object sender, EventArgs e)
