@@ -320,6 +320,7 @@ namespace cavapa
                         {
                             var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
                             var time = TimeSpan.FromSeconds((double)frameNumber / (double)videoFrameRate);
+                            // https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings
                             statusLabel.Text = $"{time:dd\\.hh\\:mm\\:ss}  Processing rate {perfTimer.Update()}fps";
                             if (framesSinceSeek == framesSinceSeekThresh)
                             {
