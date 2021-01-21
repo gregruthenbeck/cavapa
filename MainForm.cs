@@ -16,11 +16,14 @@ using System.Threading;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace cavapa
 {
     public partial class MainForm : Form
     {
+        Version version;
+        string versionInfo;
         string videoFilepath = "";
         string csvExportPath = "";
 
@@ -45,6 +48,11 @@ namespace cavapa
         public MainForm()
         {
             InitializeComponent();
+
+            var execAssembly = System.Reflection.Assembly.GetExecutingAssembly();
+            version = execAssembly.GetName().Version;
+            versionInfo = GetInformationalVersion(execAssembly);
+            this.Text += " (v" + version.ToString() + ")";
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -76,6 +84,11 @@ namespace cavapa
             pictureBoxChart.Size = new Size(bmpChart.Width, bmpChart.Height);
             pictureBoxChart.Margin = new Padding(0);
             this.tableLayoutPanel1.Controls.Add(this.pictureBoxChart, 0, 2);
+        }
+
+        public string GetInformationalVersion(Assembly assembly)
+        {
+            return FileVersionInfo.GetVersionInfo(assembly.Location).ProductVersion;
         }
 
         private void Form1_Shown(object sender, EventArgs e)
@@ -503,7 +516,7 @@ namespace cavapa
                 "All files (*.*)|*.*";
             if (ofd.ShowDialog() == DialogResult.OK) {
                 string fname = Path.GetFileName(ofd.FileName);
-                this.Text = "CAVAPA: " + fname;
+                this.Text = "CAVAPA: " + fname + " (v" + version.ToString() + ")";
                 statusLabel.Text = fname;
 
                 trackBar1.Value = 0;
@@ -569,6 +582,7 @@ namespace cavapa
         private void aboutCAVAPAToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AboutForm aboutForm = new AboutForm();
+            aboutForm.TextBoxContents += "\n\n*Version Info:*\n\t" + versionInfo.Replace("|", "\n\t");
             aboutForm.ShowDialog();
         }
 

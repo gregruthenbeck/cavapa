@@ -12,9 +12,24 @@ namespace cavapa
 {
     public partial class AboutForm : Form
     {
+        public string TextBoxContents {
+            get {
+                return richTextBox1.Text;
+            }
+            set {
+                richTextBox1.Text = value;
+            }
+
+        }
+
         public AboutForm()
         {
             InitializeComponent();
+        }
+
+        private void AboutForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

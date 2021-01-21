@@ -58,6 +58,7 @@ namespace cavapa
             this.Name = "AboutForm";
             this.Padding = new System.Windows.Forms.Padding(36, 20, 36, 20);
             this.Text = "About CAVAPA";
+            this.Load += new System.EventHandler(this.AboutForm_Load);
             this.ResumeLayout(false);
 
         }
