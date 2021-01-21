@@ -52,7 +52,7 @@ namespace cavapa
             var execAssembly = System.Reflection.Assembly.GetExecutingAssembly();
             version = execAssembly.GetName().Version;
             versionInfo = GetInformationalVersion(execAssembly);
-            this.Text += " (v" + version.ToString() + ")";
+            this.Text += " v" + version.ToString() + "";
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -516,7 +516,7 @@ namespace cavapa
                 "All files (*.*)|*.*";
             if (ofd.ShowDialog() == DialogResult.OK) {
                 string fname = Path.GetFileName(ofd.FileName);
-                this.Text = "CAVAPA: " + fname + " (v" + version.ToString() + ")";
+                this.Text = "CAVAPA: " + fname + " v" + version.ToString();
                 statusLabel.Text = fname;
 
                 trackBar1.Value = 0;
@@ -582,7 +582,7 @@ namespace cavapa
         private void aboutCAVAPAToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AboutForm aboutForm = new AboutForm();
-            aboutForm.TextBoxContents += "\n\n*Version Info:*\n\t" + versionInfo.Replace("|", "\n\t");
+            aboutForm.TextBoxContents += "\n\nVersion Info:\n\t" + versionInfo.Replace("|", "\n\t");
             aboutForm.ShowDialog();
         }
 
