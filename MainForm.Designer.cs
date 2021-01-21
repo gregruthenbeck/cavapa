@@ -54,6 +54,7 @@ namespace cavapa
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
             this.statusProcessingRate = new System.Windows.Forms.ToolStripStatusLabel();
+            this.recentOneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
@@ -104,7 +105,6 @@ namespace cavapa
             // 
             // menuStrip1
             // 
-            this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1,
@@ -112,7 +112,7 @@ namespace cavapa
             this.aboutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1831, 36);
+            this.menuStrip1.Size = new System.Drawing.Size(1831, 33);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -120,12 +120,13 @@ namespace cavapa
             // 
             this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openVideoToolStripMenuItem,
+            this.recentOneToolStripMenuItem,
             this.toolStripSeparator2,
             this.exportCSVDataFileToolStripMenuItem,
             this.toolStripSeparator1,
             this.closeToolStripMenuItem});
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(54, 32);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(54, 29);
             this.toolStripMenuItem1.Text = "&File";
             // 
             // openVideoToolStripMenuItem
@@ -231,12 +232,12 @@ namespace cavapa
             this.tableLayoutPanel1.Controls.Add(this.pictureBox1, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.trackBar1, 0, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 36);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 33);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 55F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1831, 1272);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1831, 1275);
             this.tableLayoutPanel1.TabIndex = 3;
             // 
             // pictureBox1
@@ -245,7 +246,7 @@ namespace cavapa
             this.pictureBox1.Location = new System.Drawing.Point(0, 0);
             this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(1831, 1217);
+            this.pictureBox1.Size = new System.Drawing.Size(1831, 1220);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 1;
             this.pictureBox1.TabStop = false;
@@ -254,7 +255,7 @@ namespace cavapa
             // 
             this.trackBar1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.trackBar1.LargeChange = 250;
-            this.trackBar1.Location = new System.Drawing.Point(0, 1217);
+            this.trackBar1.Location = new System.Drawing.Point(0, 1220);
             this.trackBar1.Margin = new System.Windows.Forms.Padding(0);
             this.trackBar1.Maximum = 6000;
             this.trackBar1.Name = "trackBar1";
@@ -269,6 +270,12 @@ namespace cavapa
             this.statusProcessingRate.Name = "statusProcessingRate";
             this.statusProcessingRate.Size = new System.Drawing.Size(132, 25);
             this.statusProcessingRate.Text = "Processing@0x";
+            // 
+            // recentOneToolStripMenuItem
+            // 
+            this.recentOneToolStripMenuItem.Name = "recentOneToolStripMenuItem";
+            this.recentOneToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.recentOneToolStripMenuItem.Text = "Open &Recent Video";
             // 
             // MainForm
             // 
@@ -323,6 +330,7 @@ namespace cavapa
         private System.Windows.Forms.ToolStripStatusLabel statusVideoInfo;
         private System.Windows.Forms.ToolStripStatusLabel statusVideoDuration;
         private System.Windows.Forms.ToolStripStatusLabel statusProcessingRate;
+        private System.Windows.Forms.ToolStripMenuItem recentOneToolStripMenuItem;
     }
 }
 

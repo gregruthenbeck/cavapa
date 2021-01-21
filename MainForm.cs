@@ -87,6 +87,116 @@ namespace cavapa
             pictureBoxChart.Size = new Size(bmpChart.Width, bmpChart.Height);
             pictureBoxChart.Margin = new Padding(0);
             this.tableLayoutPanel1.Controls.Add(this.pictureBoxChart, 0, 2);
+
+            UpdateRecentItems();
+        }
+
+        private void UpdateRecentItems() 
+        {
+            if (Properties.Settings.Default.RecentVideoFilePaths != null)
+            {
+                ToolStripMenuItem[] recentVideos = new ToolStripMenuItem[Properties.Settings.Default.RecentVideoFilePaths.Count];
+                for (int i = 0; i < recentVideos.Length; i++)
+                {
+                    recentVideos[i] = new ToolStripMenuItem("&" + (i + 1).ToString() + " " + Path.GetFileName(Properties.Settings.Default.RecentVideoFilePaths[i]));
+                    recentVideos[i].Click += OpenRecentVideo_Click;
+                }
+                recentOneToolStripMenuItem.DropDownItems.Clear();
+                recentOneToolStripMenuItem.DropDownItems.AddRange(recentVideos);
+            }
+        }
+
+        private void OpenRecentVideo_Click(object sender, EventArgs e)
+        {
+            var menuItem = sender as ToolStripMenuItem;
+            string idStr = menuItem.Text.Split(new char[] { ' ' })[0].Replace("&","");
+            int id = 0;
+            if (int.TryParse(idStr, out id))
+                OpenVideo(Properties.Settings.Default.RecentVideoFilePaths[id-1]);
+        }
+
+        private void OpenVideo(string filepath)
+        {
+            if (!File.Exists(filepath)) {
+                MessageBox.Show("The selected video file does not exist.\n" + filepath, "File not found!");
+                return;
+            }
+
+            string fname = Path.GetFileName(filepath);
+            this.Text = "CAVAPA: " + fname + " v" + version.ToString();
+            statusLabel.Text = fname;
+
+            if (Properties.Settings.Default.RecentVideoFilePaths == null)
+                Properties.Settings.Default.RecentVideoFilePaths = new System.Collections.Specialized.StringCollection();
+
+            if (!Properties.Settings.Default.RecentVideoFilePaths.Contains(filepath))
+            {
+                Properties.Settings.Default.RecentVideoFilePaths.Add(filepath);
+                if (Properties.Settings.Default.RecentVideoFilePaths.Count > 10)
+                    Properties.Settings.Default.RecentVideoFilePaths.RemoveAt(10);
+
+                UpdateRecentItems();
+            }
+
+            trackBar1.Value = 0;
+
+            var mediaInfo = new MediaInfoDotNet.MediaFile(filepath);
+            var videoInfo = mediaInfo.Video[0];
+            var kbpsStr = "";
+            int bps = 0;
+            if (int.TryParse(videoInfo.bitRate, out bps))
+                kbpsStr = $" {bps / 1000}kbps";
+            statusVideoInfo.Text = $"{Path.GetExtension(filepath)} ({videoInfo.internetMediaType}{kbpsStr}) {videoInfo.Width}x{videoInfo.Height}@{videoInfo.frameRate}fps";
+            Console.WriteLine("Video Format: " + statusVideoInfo.Text);
+
+            videoFrameRate = videoInfo.frameRate;
+            videoFrameCount = videoInfo.frameCount;
+            trackBar1.Maximum = videoInfo.frameCount + 1;
+
+            statusVideoDuration.Text = $"/{TimeSpan.FromMilliseconds(videoInfo.duration):hh\\:mm\\:ss}";
+
+            if (videoInfo.Width >= 720)
+            {
+                processSettings.frameBlendCount = 2;
+                enableFlickerReductionToolStripMenuItem.Checked = false;
+            }
+            else
+            {
+                processSettings.frameBlendCount = 4;
+                enableFlickerReductionToolStripMenuItem.Checked = true;
+            }
+
+            processedFrameCount = 0L;
+            movementScoreMax = 0;
+            movementScores = new float[videoFrameCount];
+            for (int i = 0; i < movementScores.Length; i++)
+            {
+                movementScores[i] = float.NegativeInfinity;
+            }
+
+            var width = videoInfo.width;
+            var height = videoInfo.height;
+            movement = new Image<Gray, byte>(width, height);
+            movementHist = new Image<Gray, byte>(width, height);
+
+            Task.Run(() =>
+            {
+                Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
+                ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, filepath);
+            });
+
+            //processMultithreaded = true;
+            //int numChunks = Math.Min(Environment.ProcessorCount, 6); // Low-performance CPUs use under 4 threads
+            //long frameStride = videoFrameCount / (long)numChunks;
+            //long marker = 0L;
+            //for (int i = 0; i < numChunks; i++)
+            //{
+            //    Task.Run(() =>
+            //    {
+            //        Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
+            //        ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName, i, marker, marker += frameStride);
+            //    });
+            //}
         }
 
         public string GetInformationalVersion(Assembly assembly)
@@ -355,6 +465,7 @@ namespace cavapa
 
                         if (!processMultithreaded)
                         {
+                            // Off-load some processing to another thread to allow faster updates on the main processing thread
                             Task.Run(() =>
                             {
                                 Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
@@ -371,15 +482,19 @@ namespace cavapa
             movementHist = (movementHist.Mat * processSettings.movementHistoryDecay).ToImage<Gray, byte>();
             movementHist = (movementHist.Mat + movement.Mat).ToImage<Gray, byte>();
 
-            // re-init to see un-processed input frame
-            //currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
             Image<Bgr, byte> moveImg = movementHist.Convert<Bgr, byte>();
             moveImg[0] = new Image<Gray, byte>(movementHist.Width, movementHist.Height); // Make the blue-channel zero
             moveImg[2] = new Image<Gray, byte>(movementHist.Width, movementHist.Height); // Make the red-channel zero
-            //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = background.ToBitmap());
-            //pictureBox1.Invoke(m);
-            var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImageMat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
-            pictureBox1.Invoke(picMI);
+
+            try
+            {
+                if (processingEnabled)
+                {
+                    var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImageMat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
+                    pictureBox1.Invoke(picMI);
+                }
+            }
+            catch { }
         }
 
         private Bitmap ShowEditMaskForm(Bitmap bg, Image<Gray,byte> mask) {
@@ -528,69 +643,7 @@ namespace cavapa
                 "*.mpeg;*.Mpeg;*.MPEG;*.mkv;*.Mkv;*.MKV;*.mts;*.Mts;*.MTS;*.wmv;*.Wmv;*.WMV|" +
                 "All files (*.*)|*.*";
             if (ofd.ShowDialog() == DialogResult.OK) {
-                string fname = Path.GetFileName(ofd.FileName);
-                this.Text = "CAVAPA: " + fname + " v" + version.ToString();
-                statusLabel.Text = fname;
-
-                trackBar1.Value = 0;
-
-                var mediaInfo = new MediaInfoDotNet.MediaFile(ofd.FileName);
-                var videoInfo = mediaInfo.Video[0];
-                var kbpsStr = "";
-                int bps = 0;
-                if (int.TryParse(videoInfo.bitRate, out bps))
-                    kbpsStr = $" {bps/1000}kbps";
-                statusVideoInfo.Text = $"{Path.GetExtension(ofd.FileName)} ({videoInfo.internetMediaType}{kbpsStr}) {videoInfo.Width}x{videoInfo.Height}@{videoInfo.frameRate}fps";
-                Console.WriteLine("Video Format: " + statusVideoInfo.Text);
-
-                videoFrameRate = videoInfo.frameRate;
-                videoFrameCount = videoInfo.frameCount;
-                trackBar1.Maximum = videoInfo.frameCount + 1;
-
-                statusVideoDuration.Text = $"/{TimeSpan.FromMilliseconds(videoInfo.duration):hh\\:mm\\:ss}";
-
-                if (videoInfo.Width >= 720)
-                {
-                    processSettings.frameBlendCount = 2;
-                    enableFlickerReductionToolStripMenuItem.Checked = false;
-                }
-                else
-                {
-                    processSettings.frameBlendCount = 4;
-                    enableFlickerReductionToolStripMenuItem.Checked = true;
-                }
-
-                processedFrameCount = 0L;
-                movementScoreMax = 0;
-                movementScores = new float[videoFrameCount];
-                for (int i = 0; i < movementScores.Length; i++)
-                {
-                    movementScores[i] = float.NegativeInfinity;
-                }
-
-                var width = videoInfo.width;
-                var height = videoInfo.height;
-                movement = new Image<Gray, byte>(width, height);
-                movementHist = new Image<Gray, byte>(width, height);
-
-                Task.Run(() =>
-                {
-                    Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-                    ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName);
-                });
-
-                //processMultithreaded = true;
-                //int numChunks = Math.Min(Environment.ProcessorCount, 6); // Low-performance CPUs use under 4 threads
-                //long frameStride = videoFrameCount / (long)numChunks;
-                //long marker = 0L;
-                //for (int i = 0; i < numChunks; i++)
-                //{
-                //    Task.Run(() =>
-                //    {
-                //        Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-                //        ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName, i, marker, marker += frameStride);
-                //    });
-                //}
+                OpenVideo(ofd.FileName);
             }
         }
 
@@ -659,6 +712,7 @@ namespace cavapa
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            Properties.Settings.Default.Save();
             processingEnabled = false;
         }
 
