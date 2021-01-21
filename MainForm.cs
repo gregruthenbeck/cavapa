@@ -318,16 +318,19 @@ namespace cavapa
 
                         if (leadInFrames == 0)
                         {
-                            var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
+                            int currentFps = perfTimer.Update();
+                            double processingRate = (double)currentFps / (double)videoFrameRate;
                             var time = TimeSpan.FromSeconds((double)frameNumber / (double)videoFrameRate);
                             // https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings
-                            statusLabel.Text = $"{time:dd\\.hh\\:mm\\:ss}  Processing rate {perfTimer.Update()}fps";
+                            statusLabel.Text = $"{time:dd\\.hh\\:mm\\:ss}  Processing@{processingRate:0.0}x";
+                            var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
                             if (framesSinceSeek == framesSinceSeekThresh)
                             {
                                 movementScores[frameNumber] = (float)moveScore;
                                 movementScoreMax = Math.Max(movementScoreMax, (float)moveScore);
-                                movementScoreMax *= 0.99f;
                                 UpdateChart();
+                                // decay the maximum slowly to ensure early "noise" peaks don't destroy scaling forever
+                                movementScoreMax *= 0.9999f;
                             }
                         }
                         processedFrameCount++;
