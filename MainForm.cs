@@ -335,7 +335,8 @@ namespace cavapa
                             double processingRate = (double)currentFps / (double)videoFrameRate;
                             var time = TimeSpan.FromSeconds((double)frameNumber / (double)videoFrameRate);
                             // https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings
-                            statusLabel.Text = $"{time:dd\\.hh\\:mm\\:ss}  Processing@{processingRate:0.0}x";
+                            statusLabel.Text = $"{time:hh\\:mm\\:ss}";
+                            statusProcessingRate.Text = $"Processing@{ processingRate: 0.0}x";
                             var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
                             if (framesSinceSeek == framesSinceSeekThresh)
                             {
@@ -533,6 +534,8 @@ namespace cavapa
                 videoFrameRate = videoInfo.frameRate;
                 videoFrameCount = videoInfo.frameCount;
                 trackBar1.Maximum = videoInfo.frameCount + 1;
+
+                statusVideoDuration.Text = $"/{TimeSpan.FromMilliseconds(videoInfo.duration):hh\\:mm\\:ss}";
 
                 if (videoInfo.Width >= 720)
                 {

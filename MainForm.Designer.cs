@@ -31,6 +31,7 @@ namespace cavapa
         {
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.statusVideoDuration = new System.Windows.Forms.ToolStripStatusLabel();
             this.progressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.statusVideoInfo = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
@@ -52,6 +53,7 @@ namespace cavapa
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
+            this.statusProcessingRate = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
@@ -64,6 +66,8 @@ namespace cavapa
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusLabel,
+            this.statusVideoDuration,
+            this.statusProcessingRate,
             this.progressBar,
             this.statusVideoInfo});
             this.statusStrip1.Location = new System.Drawing.Point(0, 1308);
@@ -77,6 +81,13 @@ namespace cavapa
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(19, 25);
             this.statusLabel.Text = "-";
+            // 
+            // statusVideoDuration
+            // 
+            this.statusVideoDuration.Font = new System.Drawing.Font("Segoe UI", 8F);
+            this.statusVideoDuration.Name = "statusVideoDuration";
+            this.statusVideoDuration.Size = new System.Drawing.Size(55, 25);
+            this.statusVideoDuration.Text = "/XX:XX";
             // 
             // progressBar
             // 
@@ -93,6 +104,7 @@ namespace cavapa
             // 
             // menuStrip1
             // 
+            this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1,
@@ -113,7 +125,7 @@ namespace cavapa
             this.toolStripSeparator1,
             this.closeToolStripMenuItem});
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(54, 30);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(54, 32);
             this.toolStripMenuItem1.Text = "&File";
             // 
             // openVideoToolStripMenuItem
@@ -157,7 +169,7 @@ namespace cavapa
             this.toolStripSeparator4,
             this.settingsToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(58, 30);
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(58, 32);
             this.editToolStripMenuItem.Text = "&Edit";
             // 
             // editMaskToolStripMenuItem
@@ -202,7 +214,7 @@ namespace cavapa
             this.aboutToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.aboutCAVAPAToolStripMenuItem});
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(78, 30);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(78, 32);
             this.aboutToolStripMenuItem.Text = "&About";
             // 
             // aboutCAVAPAToolStripMenuItem
@@ -252,6 +264,12 @@ namespace cavapa
             this.trackBar1.TickStyle = System.Windows.Forms.TickStyle.Both;
             this.trackBar1.ValueChanged += new System.EventHandler(this.trackBar1_ValueChanged);
             // 
+            // statusProcessingRate
+            // 
+            this.statusProcessingRate.Name = "statusProcessingRate";
+            this.statusProcessingRate.Size = new System.Drawing.Size(132, 25);
+            this.statusProcessingRate.Text = "Processing@0x";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -262,7 +280,6 @@ namespace cavapa
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "CAVAPA: Computer Assisted Video Analysis of Physical Activity";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -304,6 +321,8 @@ namespace cavapa
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.TrackBar trackBar1;
         private System.Windows.Forms.ToolStripStatusLabel statusVideoInfo;
+        private System.Windows.Forms.ToolStripStatusLabel statusVideoDuration;
+        private System.Windows.Forms.ToolStripStatusLabel statusProcessingRate;
     }
 }
 
