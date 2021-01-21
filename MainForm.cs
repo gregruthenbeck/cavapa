@@ -39,6 +39,9 @@ namespace cavapa
         long processedFrameCount = 0L;
         long frameNumber = 0L;
 
+        Image<Gray, byte> movement;
+        Image<Gray, byte> movementHist;
+
         FPSTimer perfTimer = null;
         Bitmap bmpChart = null;
         PictureBox pictureBoxChart = null;
@@ -224,8 +227,8 @@ namespace cavapa
                     Image<Gray, byte> foregroundMask = new Image<Gray, byte>(width, height);
                     var currForeground = new Image<Bgr, byte>(width, height);
                     var prevForeground = new Image<Bgr, byte>(width, height);
-                    var movement = new Image<Gray, byte>(width, height);
-                    var movementHist = new Image<Gray, byte>(width, height);
+                    //var movement = new Image<Gray, byte>(width, height);
+                    //var movementHist = new Image<Gray, byte>(width, height);
                     Image<Gray, byte> mask = null;
 
                     bool decoderActive = true;
@@ -352,22 +355,31 @@ namespace cavapa
 
                         if (!processMultithreaded)
                         {
-                            movementHist = (movementHist.Mat * processSettings.movementHistoryDecay).ToImage<Gray,byte>();
-                            movementHist = (movementHist.Mat + movement.Mat).ToImage<Gray, byte>();
-
-                            // re-init to see un-processed input frame
-                            //currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
-                            Image<Bgr,byte> moveImg = movementHist.Convert<Bgr,byte>();
-                            moveImg[0] = new Image<Gray, byte>(width, height); // Make the blue-channel zero
-                            moveImg[2] = new Image<Gray, byte>(width, height); // Make the red-channel zero
-                            //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = background.ToBitmap());
-                            //pictureBox1.Invoke(m);
-                            var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImage.Mat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
-                            pictureBox1.Invoke(picMI);
+                            Task.Run(() =>
+                            {
+                                Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
+                                UpdateProcessMainView(currImage.Mat);
+                            });
                         }
                     }
                 }
             }
+        }
+
+        private void UpdateProcessMainView(Mat currImageMat) 
+        {
+            movementHist = (movementHist.Mat * processSettings.movementHistoryDecay).ToImage<Gray, byte>();
+            movementHist = (movementHist.Mat + movement.Mat).ToImage<Gray, byte>();
+
+            // re-init to see un-processed input frame
+            //currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
+            Image<Bgr, byte> moveImg = movementHist.Convert<Bgr, byte>();
+            moveImg[0] = new Image<Gray, byte>(movementHist.Width, movementHist.Height); // Make the blue-channel zero
+            moveImg[2] = new Image<Gray, byte>(movementHist.Width, movementHist.Height); // Make the red-channel zero
+            //MethodInvoker m = new MethodInvoker(() => pictureBox1.Image = background.ToBitmap());
+            //pictureBox1.Invoke(m);
+            var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImageMat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
+            pictureBox1.Invoke(picMI);
         }
 
         private Bitmap ShowEditMaskForm(Bitmap bg, Image<Gray,byte> mask) {
@@ -555,6 +567,11 @@ namespace cavapa
                 {
                     movementScores[i] = float.NegativeInfinity;
                 }
+
+                var width = videoInfo.width;
+                var height = videoInfo.height;
+                movement = new Image<Gray, byte>(width, height);
+                movementHist = new Image<Gray, byte>(width, height);
 
                 Task.Run(() =>
                 {
