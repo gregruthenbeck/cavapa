@@ -167,7 +167,7 @@ namespace cavapa
         {
             videoFilepath = url;
             processingEnabled = true;
-            perfTimer = new FPSTimer();
+            perfTimer = new FPSTimer((int)videoFrameRate);
             long leadInFrames = processSettings.backgroundFrameBlendCount * processSettings.backgroundFrameBlendInterval;
             if (!processMultithreaded && leadInFrames < startFrame) // dont't do leadIn if we're too close to the start of the video
                 startFrame = startFrame - leadInFrames;
@@ -319,15 +319,13 @@ namespace cavapa
                         if (leadInFrames == 0)
                         {
                             var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
-                            //var moveScoreStr = $"{moveScore:F1}";
-                            //moveScoreStr = moveScoreStr.PadLeft(6);
-                            //var status = $"[ChunkId: {chunkId}] Frame: {frameNumber:D6}. Movement: {moveScoreStr}";
-                            //Console.WriteLine(status);
-                            statusLabel.Text = $"Processing rate {perfTimer.Update()}fps";
+                            var time = TimeSpan.FromSeconds((double)frameNumber / (double)videoFrameRate);
+                            statusLabel.Text = $"{time:dd\\.hh\\:mm\\:ss}  Processing rate {perfTimer.Update()}fps";
                             if (framesSinceSeek == framesSinceSeekThresh)
                             {
                                 movementScores[frameNumber] = (float)moveScore;
                                 movementScoreMax = Math.Max(movementScoreMax, (float)moveScore);
+                                movementScoreMax *= 0.99f;
                                 UpdateChart();
                             }
                         }

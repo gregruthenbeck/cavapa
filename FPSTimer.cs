@@ -14,8 +14,9 @@ namespace cavapa
         int count = 0;
         int fps = 20;
 
-        public FPSTimer() 
+        public FPSTimer(int _interval = 25) 
         {
+            this.interval = _interval;
             timer = new Stopwatch();
             timer.Start();
         }
@@ -24,7 +25,7 @@ namespace cavapa
         {
             if (++count == interval)
             {
-                fps = (int)(1000.0 / (double)(timer.ElapsedMilliseconds / (long)(interval)));
+                fps = (int)(1.08 * 1000.0 / (double)(timer.ElapsedMilliseconds / (double)(interval)) + 0.5);
                 count = 0;
                 timer.Restart();
             }
