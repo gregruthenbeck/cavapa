@@ -95,7 +95,7 @@ namespace cavapa
             var settingsControl = new SettingsControl();
             settingsForm.Controls.Add(settingsControl);
             settingsForm.Controls[0].Dock = DockStyle.Fill;
-            settingsForm.Size = new Size(409, 680);
+            settingsForm.Size = new Size(409, 320);
             settingsForm.FormBorderStyle = FormBorderStyle.FixedDialog;
             settingsForm.MaximizeBox = false;
             settingsForm.MinimizeBox = false;
@@ -300,7 +300,7 @@ namespace cavapa
             _videoFilepath = url;
             _processingEnabled = true;
             _perfTimer = new FPSTimer((int)_videoFrameRate);
-            long leadInFrames = _processSettings.backgroundFrameBlendCount * _processSettings.backgroundFrameBlendInterval;
+            long leadInFrames = 5;
             if (!_processMultithreaded && leadInFrames < startFrame) // dont't do leadIn if we're too close to the start of the video
                 startFrame = startFrame - leadInFrames;
             else
@@ -393,13 +393,10 @@ namespace cavapa
                         if (_processSettings.enableShadowReduction)
                             currImage = currImage.Resize(width, height / 8, Emgu.CV.CvEnum.Inter.Area).Resize(width, height, Emgu.CV.CvEnum.Inter.Area);
 
-                        //if (processSettings.frameBlendCount == 1)
-                        //    // Use 10% of previous frame for some speckle-noise & flicker reduction
-                        //    currImage = (0.9 * currImage.Mat + 0.1 * prevImage.Mat).ToImage<Bgr, byte>();
-                        //else
-
                         // Smooth using multiple frames
-                        currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
+                        // Use 10% of previous frame for some speckle-noise & flicker reduction
+                        currImage = (0.9 * currImage.Mat + 0.1 * prevImage.Mat).ToImage<Bgr, byte>();
+                        //currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
 
                         if (!_maskSet)
                         {
