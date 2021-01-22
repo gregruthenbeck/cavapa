@@ -90,6 +90,19 @@ namespace cavapa
             this.tableLayoutPanel1.Controls.Add(this._pictureBoxChart, 0, 3);
 
             UpdateRecentItems();
+
+            Form settingsForm = new Form();
+            var settingsControl = new SettingsControl();
+            settingsForm.Controls.Add(settingsControl);
+            settingsForm.Controls[0].Dock = DockStyle.Fill;
+            settingsForm.Size = new Size(409, 680);
+            settingsForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            settingsForm.MaximizeBox = false;
+            settingsForm.MinimizeBox = false;
+            settingsForm.Text = "CAVAPA Settings";
+            settingsForm.StartPosition = FormStartPosition.CenterParent;
+            settingsForm.CancelButton = settingsControl.CloseButton;
+            settingsForm.ShowDialog();
         }
 
         private void UpdateRecentItems() 
@@ -759,7 +772,7 @@ namespace cavapa
             var settingsControl = new SettingsControl();
             settingsForm.Controls.Add(settingsControl);
             settingsForm.Controls[0].Dock = DockStyle.Fill;
-            settingsForm.Size = new Size(453, 980);
+            settingsForm.Size = new Size(487, 980);
             settingsForm.Text = "CAVAPA Settings";
             settingsForm.StartPosition = FormStartPosition.CenterParent;
             settingsForm.Show();

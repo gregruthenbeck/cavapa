@@ -105,6 +105,12 @@
     <Compile Include="SettingsControl.Designer.cs">
       <DependentUpon>SettingsControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="TrackBarEx.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TrackBarEx.Designer.cs">
+      <DependentUpon>TrackBarEx.cs</DependentUpon>
+    </Compile>
     <Compile Include="VideoFrameConverter.cs" />
     <Compile Include="VideoStreamDecoder.cs" />
     <EmbeddedResource Include="AboutForm.resx">
@@ -131,6 +137,9 @@
     </Compile>
     <EmbeddedResource Include="SettingsControl.resx">
       <DependentUpon>SettingsControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TrackBarEx.resx">
+      <DependentUpon>TrackBarEx.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="MediaInfoDotNet.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
