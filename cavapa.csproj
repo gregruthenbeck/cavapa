@@ -99,6 +99,12 @@
     <Compile Include="ProcessSettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SettingsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SettingsControl.Designer.cs">
+      <DependentUpon>SettingsControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="VideoFrameConverter.cs" />
     <Compile Include="VideoStreamDecoder.cs" />
     <EmbeddedResource Include="AboutForm.resx">
@@ -123,6 +129,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="SettingsControl.resx">
+      <DependentUpon>SettingsControl.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="MediaInfoDotNet.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

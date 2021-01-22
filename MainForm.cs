@@ -67,7 +67,8 @@ namespace cavapa
             Console.WriteLine($"FFmpeg version info: {ffmpeg.av_version_info()}");
             SetupLogging();
 
-            _processSettings.movementHistoryDecay = 0.85;
+            // shorten the bright-green glow-trail of movements (default is 0.9)
+            _processSettings.movementHistoryDecay = 0.85; 
             //processSettings.frameBlendCount = 2;
             //processSettings.movementMultiplier = 20.0;
 
@@ -750,6 +751,18 @@ namespace cavapa
         private void trackBar1_ValueChanged(object sender, EventArgs e)
         {
             _trackBarPos = trackBar1.Value;
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Form settingsForm = new Form();
+            var settingsControl = new SettingsControl();
+            settingsForm.Controls.Add(settingsControl);
+            settingsForm.Controls[0].Dock = DockStyle.Fill;
+            settingsForm.Size = new Size(453, 980);
+            settingsForm.Text = "CAVAPA Settings";
+            settingsForm.StartPosition = FormStartPosition.CenterParent;
+            settingsForm.Show();
         }
     }
 }
