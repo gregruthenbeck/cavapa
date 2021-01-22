@@ -80,13 +80,13 @@ namespace cavapa
             enableFlickerReductionToolStripMenuItem.Checked = (_processSettings.frameBlendCount > 1);
             enableShadowReductionToolStripMenuItem.Checked = _processSettings.enableShadowReduction;
 
-            this.tableLayoutPanel1.RowCount = 3;
+            this.tableLayoutPanel1.RowCount = 4;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 120F));
             _pictureBoxChart = new PictureBox();
             _bmpChart = new Bitmap(this.tableLayoutPanel1.Size.Width, 120, PixelFormat.Format32bppArgb);
             _pictureBoxChart.Size = new Size(_bmpChart.Width, _bmpChart.Height);
             _pictureBoxChart.Margin = new Padding(0);
-            this.tableLayoutPanel1.Controls.Add(this._pictureBoxChart, 0, 2);
+            this.tableLayoutPanel1.Controls.Add(this._pictureBoxChart, 0, 3);
 
             UpdateRecentItems();
         }
@@ -144,8 +144,6 @@ namespace cavapa
                 UpdateRecentItems();
             }
 
-            trackBar1.Value = 0;
-
             var mediaInfo = new MediaInfoDotNet.MediaFile(filepath);
             var videoInfo = mediaInfo.Video[0];
             var kbpsStr = "";
@@ -157,8 +155,9 @@ namespace cavapa
 
             _videoFrameRate = videoInfo.frameRate;
             _videoFrameCount = videoInfo.frameCount;
-            trackBar1.Maximum = videoInfo.frameCount + 1;
 
+            trackBar1.Value = 0;
+            trackBar1.Maximum = videoInfo.frameCount;
             statusVideoDuration.Text = $"/{TimeSpan.FromMilliseconds(videoInfo.duration):hh\\:mm\\:ss}";
 
             if (videoInfo.Width >= 720)
@@ -174,7 +173,7 @@ namespace cavapa
 
             _processedFrameCount = 0L;
             _movementScoreMax = 0;
-            _movementScores = new float[_videoFrameCount];
+            _movementScores = new float[_videoFrameCount + 1];
             for (int i = 0; i < _movementScores.Length; i++)
             {
                 _movementScores[i] = float.NegativeInfinity;
@@ -190,19 +189,6 @@ namespace cavapa
                 Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
                 ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, filepath);
             });
-
-            //processMultithreaded = true;
-            //int numChunks = Math.Min(Environment.ProcessorCount, 6); // Low-performance CPUs use under 4 threads
-            //long frameStride = videoFrameCount / (long)numChunks;
-            //long marker = 0L;
-            //for (int i = 0; i < numChunks; i++)
-            //{
-            //    Task.Run(() =>
-            //    {
-            //        Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-            //        ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, ofd.FileName, i, marker, marker += frameStride);
-            //    });
-            //}
         }
 
         public string GetInformationalVersion(Assembly assembly)
@@ -306,8 +292,9 @@ namespace cavapa
             else
                 leadInFrames = 0L;
 
-            if (endFrame > _videoFrameCount)
-                endFrame = _videoFrameCount - 1;
+            // Don't set endFrame in most cases since we want to be able to seek to end and not have this loop exit
+            //if (endFrame > _videoFrameCount)
+            //    endFrame = _videoFrameCount - 1;
 
             using (var vsd = new VideoStreamDecoder(url, HWDevice))
             {
@@ -462,7 +449,8 @@ namespace cavapa
                             var moveScore = _movement.GetSum().Intensity * _processSettings.movementScoreMul;
                             if (framesSinceSeek == framesSinceSeekThresh)
                             {
-                                _movementScores[_frameNumber] = (float)moveScore;
+                                if (_frameNumber < _movementScores.Length)
+                                    _movementScores[_frameNumber] = (float)moveScore;
                                 _movementScoreMax = Math.Max(_movementScoreMax, (float)moveScore);
                                 UpdateChart();
                                 // decay the maximum slowly to ensure early "noise" peaks don't destroy scaling forever
@@ -484,9 +472,21 @@ namespace cavapa
                                 catch { }
                             });
                         }
+
+                        if (_frameNumber == endFrame) {
+                            var mi = new MethodInvoker(() => ProcessingCompleteAndExport());
+                            this.Invoke(mi);
+                        }
                     }
                 }
             }
+        }
+
+        private void ProcessingCompleteAndExport() 
+        {
+            if ((_processedFrameCount > (long)(0.98 * (double)_videoFrameCount)) &&
+                MessageBox.Show("SUCCESS\nProcessing is complete.\n\nExport data to CSV?", "Processing Complete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                exportCSVDataFileToolStripMenuItem_Click(this, null);
         }
 
         private void UpdateProcessMainView(Mat currImageMat) 
