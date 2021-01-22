@@ -122,6 +122,8 @@ namespace cavapa
                 return;
             }
 
+            processingEnabled = false;
+
             string fname = Path.GetFileName(filepath);
             this.Text = "CAVAPA: " + fname + " v" + version.ToString();
             statusLabel.Text = fname;
@@ -131,9 +133,9 @@ namespace cavapa
 
             if (!Properties.Settings.Default.RecentVideoFilePaths.Contains(filepath))
             {
-                Properties.Settings.Default.RecentVideoFilePaths.Add(filepath);
-                if (Properties.Settings.Default.RecentVideoFilePaths.Count > 10)
-                    Properties.Settings.Default.RecentVideoFilePaths.RemoveAt(10);
+                Properties.Settings.Default.RecentVideoFilePaths.Insert(0, filepath);
+                if (Properties.Settings.Default.RecentVideoFilePaths.Count > 12)
+                    Properties.Settings.Default.RecentVideoFilePaths.RemoveAt(12);
 
                 UpdateRecentItems();
             }
