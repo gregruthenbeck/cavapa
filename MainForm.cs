@@ -22,29 +22,29 @@ namespace cavapa
 {
     public partial class MainForm : Form
     {
-        Version version;
-        string versionInfo;
-        string videoFilepath = "";
-        string csvExportPath = "";
+        Version _version;
+        string _versionInfo;
+        string _videoFilepath = "";
+        string _csvExportPath = "";
 
-        bool maskSet = true;
-        bool processingEnabled = true;
-        bool processingSleep = false;
-        ProcessSettings processSettings = new ProcessSettings();
-        long videoFrameCount = 0;
-        float videoFrameRate = 25.0f;
-        float[] movementScores = null;
-        float movementScoreMax = 0;
-        bool processMultithreaded = false;
-        long processedFrameCount = 0L;
-        long frameNumber = 0L;
+        bool _maskSet = true;
+        bool _processingEnabled = true;
+        bool _processingSleep = false;
+        ProcessSettings _processSettings = new ProcessSettings();
+        long _videoFrameCount = 0;
+        float _videoFrameRate = 25.0f;
+        float[] _movementScores = null;
+        float _movementScoreMax = 0;
+        bool _processMultithreaded = false;
+        long _processedFrameCount = 0L;
+        long _frameNumber = 0L;
 
-        Image<Gray, byte> movement;
-        Image<Gray, byte> movementHist;
+        Image<Gray, byte> _movement;
+        Image<Gray, byte> _movementHist;
 
-        FPSTimer perfTimer = null;
-        Bitmap bmpChart = null;
-        PictureBox pictureBoxChart = null;
+        FPSTimer _perfTimer = null;
+        Bitmap _bmpChart = null;
+        PictureBox _pictureBoxChart = null;
 
         private static int _trackBarPos = 0;
 
@@ -53,9 +53,9 @@ namespace cavapa
             InitializeComponent();
 
             var execAssembly = System.Reflection.Assembly.GetExecutingAssembly();
-            version = execAssembly.GetName().Version;
-            versionInfo = GetInformationalVersion(execAssembly);
-            this.Text += " v" + version.ToString() + "";
+            _version = execAssembly.GetName().Version;
+            _versionInfo = GetInformationalVersion(execAssembly);
+            this.Text += " v" + _version.ToString() + "";
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -67,7 +67,7 @@ namespace cavapa
             Console.WriteLine($"FFmpeg version info: {ffmpeg.av_version_info()}");
             SetupLogging();
 
-            processSettings.movementHistoryDecay = 0.85;
+            _processSettings.movementHistoryDecay = 0.85;
             //processSettings.frameBlendCount = 2;
             //processSettings.movementMultiplier = 20.0;
 
@@ -77,16 +77,16 @@ namespace cavapa
             //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../CameraB_cut.mp4");
             //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../kilp_2011_8_22-10-koris-deint.mp4");
 
-            enableFlickerReductionToolStripMenuItem.Checked = (processSettings.frameBlendCount > 1);
-            enableShadowReductionToolStripMenuItem.Checked = processSettings.enableShadowReduction;
+            enableFlickerReductionToolStripMenuItem.Checked = (_processSettings.frameBlendCount > 1);
+            enableShadowReductionToolStripMenuItem.Checked = _processSettings.enableShadowReduction;
 
             this.tableLayoutPanel1.RowCount = 3;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 120F));
-            pictureBoxChart = new PictureBox();
-            bmpChart = new Bitmap(this.tableLayoutPanel1.Size.Width, 120, PixelFormat.Format32bppArgb);
-            pictureBoxChart.Size = new Size(bmpChart.Width, bmpChart.Height);
-            pictureBoxChart.Margin = new Padding(0);
-            this.tableLayoutPanel1.Controls.Add(this.pictureBoxChart, 0, 2);
+            _pictureBoxChart = new PictureBox();
+            _bmpChart = new Bitmap(this.tableLayoutPanel1.Size.Width, 120, PixelFormat.Format32bppArgb);
+            _pictureBoxChart.Size = new Size(_bmpChart.Width, _bmpChart.Height);
+            _pictureBoxChart.Margin = new Padding(0);
+            this.tableLayoutPanel1.Controls.Add(this._pictureBoxChart, 0, 2);
 
             UpdateRecentItems();
         }
@@ -122,14 +122,14 @@ namespace cavapa
                 return;
             }
 
-            if (processingEnabled)
+            if (_processingEnabled)
             {
-                processingEnabled = false;
+                _processingEnabled = false;
                 Thread.Sleep(500);
             }
 
             string fname = Path.GetFileName(filepath);
-            this.Text = "CAVAPA: " + fname + " v" + version.ToString();
+            this.Text = "CAVAPA: " + fname + " v" + _version.ToString();
             statusLabel.Text = fname;
 
             if (Properties.Settings.Default.RecentVideoFilePaths == null)
@@ -155,35 +155,35 @@ namespace cavapa
             statusVideoInfo.Text = $"{Path.GetExtension(filepath)} ({videoInfo.internetMediaType}{kbpsStr}) {videoInfo.Width}x{videoInfo.Height}@{videoInfo.frameRate}fps";
             Console.WriteLine("Video Format: " + statusVideoInfo.Text);
 
-            videoFrameRate = videoInfo.frameRate;
-            videoFrameCount = videoInfo.frameCount;
+            _videoFrameRate = videoInfo.frameRate;
+            _videoFrameCount = videoInfo.frameCount;
             trackBar1.Maximum = videoInfo.frameCount + 1;
 
             statusVideoDuration.Text = $"/{TimeSpan.FromMilliseconds(videoInfo.duration):hh\\:mm\\:ss}";
 
             if (videoInfo.Width >= 720)
             {
-                processSettings.frameBlendCount = 2;
+                _processSettings.frameBlendCount = 2;
                 enableFlickerReductionToolStripMenuItem.Checked = false;
             }
             else
             {
-                processSettings.frameBlendCount = 4;
+                _processSettings.frameBlendCount = 4;
                 enableFlickerReductionToolStripMenuItem.Checked = true;
             }
 
-            processedFrameCount = 0L;
-            movementScoreMax = 0;
-            movementScores = new float[videoFrameCount];
-            for (int i = 0; i < movementScores.Length; i++)
+            _processedFrameCount = 0L;
+            _movementScoreMax = 0;
+            _movementScores = new float[_videoFrameCount];
+            for (int i = 0; i < _movementScores.Length; i++)
             {
-                movementScores[i] = float.NegativeInfinity;
+                _movementScores[i] = float.NegativeInfinity;
             }
 
             var width = videoInfo.width;
             var height = videoInfo.height;
-            movement = new Image<Gray, byte>(width, height);
-            movementHist = new Image<Gray, byte>(width, height);
+            _movement = new Image<Gray, byte>(width, height);
+            _movementHist = new Image<Gray, byte>(width, height);
 
             Task.Run(() =>
             {
@@ -216,30 +216,30 @@ namespace cavapa
 
         private void UpdateChart()
         {
-            int interval = Math.Max((int)(videoFrameCount / (2L * (long)tableLayoutPanel1.Width)), 1); // Max(,1) to handle short videos
+            int interval = Math.Max((int)(_videoFrameCount / (2L * (long)tableLayoutPanel1.Width)), 1); // Max(,1) to handle short videos
 
-            if (frameNumber % interval != 0 ||
-                frameNumber / interval < 2)
+            if (_frameNumber % interval != 0 ||
+                _frameNumber / interval < 2)
                 return;
 
-            PointF[] points = new PointF[videoFrameCount / interval];
-            SizeF s = new SizeF(.5f, (float)bmpChart.Height / movementScoreMax);
+            PointF[] points = new PointF[_videoFrameCount / interval];
+            SizeF s = new SizeF(.5f, (float)_bmpChart.Height / _movementScoreMax);
             for (int i = 0; i < points.Length; i++)
             {
-                points[i] = new PointF((float)i * s.Width, bmpChart.Height - movementScores[i * interval] * s.Height);
-                points[i].Y = Math.Min(points[i].Y, (float)bmpChart.Height-2.0f);
+                points[i] = new PointF((float)i * s.Width, _bmpChart.Height - _movementScores[i * interval] * s.Height);
+                points[i].Y = Math.Min(points[i].Y, (float)_bmpChart.Height-2.0f);
             }
-            points[0] = new PointF(0F, (float)(bmpChart.Height - 1));
+            points[0] = new PointF(0F, (float)(_bmpChart.Height - 1));
 
-            using (Graphics g = Graphics.FromImage(bmpChart))
+            using (Graphics g = Graphics.FromImage(_bmpChart))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                g.FillRectangle(Brushes.LightGray, 0, 0, bmpChart.Width, bmpChart.Height);
+                g.FillRectangle(Brushes.LightGray, 0, 0, _bmpChart.Width, _bmpChart.Height);
                 g.DrawLines(Pens.Blue, points);
             }
 
-            MethodInvoker m = new MethodInvoker(() => pictureBoxChart.Image = bmpChart);
-            pictureBoxChart.Invoke(m);
+            MethodInvoker m = new MethodInvoker(() => _pictureBoxChart.Image = _bmpChart);
+            _pictureBoxChart.Invoke(m);
         }
 
         private static void ConfigureHWDecoder(out AVHWDeviceType HWtype)
@@ -297,17 +297,17 @@ namespace cavapa
 
         private unsafe void ProcessFrames(AVHWDeviceType HWDevice, string url, int chunkId = 0, long startFrame = 0, long endFrame = long.MaxValue)
         {
-            videoFilepath = url;
-            processingEnabled = true;
-            perfTimer = new FPSTimer((int)videoFrameRate);
-            long leadInFrames = processSettings.backgroundFrameBlendCount * processSettings.backgroundFrameBlendInterval;
-            if (!processMultithreaded && leadInFrames < startFrame) // dont't do leadIn if we're too close to the start of the video
+            _videoFilepath = url;
+            _processingEnabled = true;
+            _perfTimer = new FPSTimer((int)_videoFrameRate);
+            long leadInFrames = _processSettings.backgroundFrameBlendCount * _processSettings.backgroundFrameBlendInterval;
+            if (!_processMultithreaded && leadInFrames < startFrame) // dont't do leadIn if we're too close to the start of the video
                 startFrame = startFrame - leadInFrames;
             else
                 leadInFrames = 0L;
 
-            if (endFrame > videoFrameCount)
-                endFrame = videoFrameCount - 1;
+            if (endFrame > _videoFrameCount)
+                endFrame = _videoFrameCount - 1;
 
             using (var vsd = new VideoStreamDecoder(url, HWDevice))
             {
@@ -325,7 +325,7 @@ namespace cavapa
 
                 using (var vfc = new VideoFrameConverter(sourceSize, sourcePixelFormat, destinationSize, destinationPixelFormat))
                 {
-                    frameNumber = startFrame;
+                    _frameNumber = startFrame;
                     if (startFrame != 0)
                         vsd.Seek(startFrame);
                     //byte[] currFrameData = new byte[destinationSize.Width * destinationSize.Height * 3];
@@ -340,7 +340,7 @@ namespace cavapa
                     //    backgroundBuilders[i] = new FrameBlender(width, height, processSettings.backgroundFrameBlendCount);
                     //    bgs[i] = new Bitmap(width, height, PixelFormat.Format32bppArgb);
                     //}
-                    FrameBlender frameSmoother = new FrameBlender(width, height, processSettings.frameBlendCount);
+                    FrameBlender frameSmoother = new FrameBlender(width, height, _processSettings.frameBlendCount);
                     Image<Bgra, byte> background = null;
                     var bgBuilder = new Emgu.CV.BackgroundSubtractorMOG2(250, 16, false);
                     Image<Gray, byte> foregroundMask = new Image<Gray, byte>(width, height);
@@ -352,19 +352,19 @@ namespace cavapa
 
                     bool decoderActive = true;
                     AVFrame frame;
-                    while (decoderActive && (frameNumber < endFrame) && processingEnabled)
+                    while (decoderActive && (_frameNumber < endFrame) && _processingEnabled)
                     {
                         int seekFrameNum = _trackBarPos;
-                        if (!processMultithreaded)
+                        if (!_processMultithreaded)
                         {
-                            if (Math.Abs(frameNumber - seekFrameNum) > 250)
+                            if (Math.Abs(_frameNumber - seekFrameNum) > 250)
                             {
                                 vsd.Seek(seekFrameNum);
-                                frameNumber = seekFrameNum;
+                                _frameNumber = seekFrameNum;
                                 framesSinceSeek = 0;
                             }
 
-                            var trackBarSetMI = new MethodInvoker(() => trackBar1.Value = Math.Min((int)frameNumber, trackBar1.Maximum - 1));
+                            var trackBarSetMI = new MethodInvoker(() => trackBar1.Value = Math.Min((int)_frameNumber, trackBar1.Maximum - 1));
                             trackBar1.Invoke(trackBarSetMI);
                         }
 
@@ -380,7 +380,7 @@ namespace cavapa
                         if (framesSinceSeek < framesSinceSeekThresh)
                             ++framesSinceSeek;
 
-                        while (processingSleep)
+                        while (_processingSleep)
                             Thread.Sleep(500);
 
                         var convertedFrame = vfc.Convert(frame);
@@ -389,7 +389,7 @@ namespace cavapa
                         // Shadow reduction: Shadows are lindear and less vertical, so stretch the image wider
                         // and then resize back to original aspect-ratio to discard some horizontal detail.
                         // Also, people are taller than bikes & balls
-                        if (processSettings.enableShadowReduction)
+                        if (_processSettings.enableShadowReduction)
                             currImage = currImage.Resize(width, height / 8, Emgu.CV.CvEnum.Inter.Area).Resize(width, height, Emgu.CV.CvEnum.Inter.Area);
 
                         //if (processSettings.frameBlendCount == 1)
@@ -400,11 +400,11 @@ namespace cavapa
                         // Smooth using multiple frames
                         currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
 
-                        if (!maskSet)
+                        if (!_maskSet)
                         {
                             using (Bitmap bmp = ShowEditMaskForm(currImage.ToBitmap(), mask))
                             {
-                                maskSet = true;
+                                _maskSet = true;
 
                                 if (bmp == null)
                                     continue;
@@ -418,7 +418,7 @@ namespace cavapa
                         }
 
                         bgBuilder.Apply(currImage, foregroundMask);
-                        if (frameNumber == 0L)
+                        if (_frameNumber == 0L)
                             background = currImage.Convert<Bgra, byte>();
                         else
                         {
@@ -431,7 +431,7 @@ namespace cavapa
                         if (leadInFrames > 4L)
                         {
                             leadInFrames--;
-                            frameNumber++;
+                            _frameNumber++;
                             continue; // skip further processing until the lead-in is complete
                         }
                         else if (leadInFrames > 0L) 
@@ -442,10 +442,10 @@ namespace cavapa
                         //currForeground = currImage.Copy(foregroundMask.Not());
 
                         Mat moveMat = currForeground.Mat - prevForeground.Mat;
-                        movement = ((moveMat - processSettings.movementNoiseFloor) * processSettings.movementMultiplier).ToImage<Bgr, byte>().Convert<Gray,byte>();
+                        _movement = ((moveMat - _processSettings.movementNoiseFloor) * _processSettings.movementMultiplier).ToImage<Bgr, byte>().Convert<Gray,byte>();
 
                         if (mask != null)
-                            movement = movement.Copy(mask);
+                            _movement = _movement.Copy(mask);
 
                         currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
                         prevImage.Bytes = currImage.Bytes;
@@ -453,26 +453,26 @@ namespace cavapa
 
                         if (leadInFrames == 0)
                         {
-                            int currentFps = perfTimer.Update();
-                            double processingRate = (double)currentFps / (double)videoFrameRate;
-                            var time = TimeSpan.FromSeconds((double)frameNumber / (double)videoFrameRate);
+                            int currentFps = _perfTimer.Update();
+                            double processingRate = (double)currentFps / (double)_videoFrameRate;
+                            var time = TimeSpan.FromSeconds((double)_frameNumber / (double)_videoFrameRate);
                             // https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings
                             statusLabel.Text = $"{time:hh\\:mm\\:ss}";
                             statusProcessingRate.Text = $"Processing@{ processingRate: 0.0}x";
-                            var moveScore = movement.GetSum().Intensity * processSettings.movementScoreMul;
+                            var moveScore = _movement.GetSum().Intensity * _processSettings.movementScoreMul;
                             if (framesSinceSeek == framesSinceSeekThresh)
                             {
-                                movementScores[frameNumber] = (float)moveScore;
-                                movementScoreMax = Math.Max(movementScoreMax, (float)moveScore);
+                                _movementScores[_frameNumber] = (float)moveScore;
+                                _movementScoreMax = Math.Max(_movementScoreMax, (float)moveScore);
                                 UpdateChart();
                                 // decay the maximum slowly to ensure early "noise" peaks don't destroy scaling forever
-                                movementScoreMax *= 0.9999f;
+                                _movementScoreMax *= 0.9999f;
                             }
                         }
-                        processedFrameCount++;
-                        frameNumber++;
+                        _processedFrameCount++;
+                        _frameNumber++;
 
-                        if (!processMultithreaded && (frameNumber < endFrame))
+                        if (!_processMultithreaded && (_frameNumber < endFrame))
                         {
                             // Off-load some processing to another thread to allow faster updates on the main processing thread
                             Task.Run(() =>
@@ -491,16 +491,16 @@ namespace cavapa
 
         private void UpdateProcessMainView(Mat currImageMat) 
         {
-            movementHist = (movementHist.Mat * processSettings.movementHistoryDecay).ToImage<Gray, byte>();
-            movementHist = (movementHist.Mat + movement.Mat).ToImage<Gray, byte>();
+            _movementHist = (_movementHist.Mat * _processSettings.movementHistoryDecay).ToImage<Gray, byte>();
+            _movementHist = (_movementHist.Mat + _movement.Mat).ToImage<Gray, byte>();
 
-            Image<Bgr, byte> moveImg = movementHist.Convert<Bgr, byte>();
-            moveImg[0] = new Image<Gray, byte>(movementHist.Width, movementHist.Height); // Make the blue-channel zero
-            moveImg[2] = new Image<Gray, byte>(movementHist.Width, movementHist.Height); // Make the red-channel zero
+            Image<Bgr, byte> moveImg = _movementHist.Convert<Bgr, byte>();
+            moveImg[0] = new Image<Gray, byte>(_movementHist.Width, _movementHist.Height); // Make the blue-channel zero
+            moveImg[2] = new Image<Gray, byte>(_movementHist.Width, _movementHist.Height); // Make the red-channel zero
 
             try
             {
-                if (processingEnabled)
+                if (_processingEnabled)
                 {
                     var picMI = new MethodInvoker(() => pictureBox1.Image = (0.7 * currImageMat + moveImg.Mat).ToImage<Bgr, byte>().ToBitmap());
                     pictureBox1.Invoke(picMI);
@@ -647,7 +647,7 @@ namespace cavapa
 
         private void openVideoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            processingEnabled = false;
+            _processingEnabled = false;
 
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = "Video files (avi,mov,mp4,mpg,mpeg,mkv,mts,wmv)|*.avi;" + 
@@ -667,27 +667,27 @@ namespace cavapa
         private void aboutCAVAPAToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AboutForm aboutForm = new AboutForm();
-            aboutForm.TextBoxContents += "\n\nVersion Info:\n\t" + versionInfo.Replace("|", "\n\t");
+            aboutForm.TextBoxContents += "\n\nVersion Info:\n\t" + _versionInfo.Replace("|", "\n\t");
             aboutForm.ShowDialog();
         }
 
         private void editMaskToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            maskSet = false;
+            _maskSet = false;
         }
 
         private void exportCSVDataFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (movementScores == null || movementScores.Count() == 0)
+            if (_movementScores == null || _movementScores.Count() == 0)
                 return;
 
-            processingSleep = true;
+            _processingSleep = true;
 
             SaveFileDialog sfd = new SaveFileDialog();
-            if (File.Exists(csvExportPath))
-                sfd.FileName = csvExportPath;
+            if (File.Exists(_csvExportPath))
+                sfd.FileName = _csvExportPath;
             else
-                sfd.FileName = Path.GetFileNameWithoutExtension(videoFilepath) + ".csv";
+                sfd.FileName = Path.GetFileNameWithoutExtension(_videoFilepath) + ".csv";
 
             sfd.Filter = "Data files (csv,xls,xlsx)|*.csv;" +
                         "*.Csv;*.CSV;*.xls*;*.Xls*;*.XLS*|" +
@@ -695,16 +695,16 @@ namespace cavapa
 
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                csvExportPath = sfd.FileName;
+                _csvExportPath = sfd.FileName;
 
                 bool saveSuccess = false;
                 try
                 {
-                    using (TextWriter file = File.CreateText(csvExportPath))
+                    using (TextWriter file = File.CreateText(_csvExportPath))
                     {
                         file.WriteLine("FrameID, MovementScore");
 
-                        var data = movementScores;
+                        var data = _movementScores;
                         for (int i = 0; i < data.Length; i++)
                         {
                             float d = data[i];
@@ -722,29 +722,29 @@ namespace cavapa
                     MessageBox.Show(ex.Message, "Save Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
                 if (saveSuccess)
-                    MessageBox.Show($"CSV data successfully exported to \"{csvExportPath}\". \n\n{movementScores.Length:#,##0} rows written", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show($"CSV data successfully exported to \"{_csvExportPath}\". \n\n{_movementScores.Length:#,##0} rows written", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            processingSleep = false;
+            _processingSleep = false;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             Properties.Settings.Default.Save();
-            processingEnabled = false;
+            _processingEnabled = false;
         }
 
         private void enableFlickerReductionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var menuItem = sender as ToolStripMenuItem;
             menuItem.Checked = !menuItem.Checked;
-            processSettings.frameBlendCount = (menuItem.Checked ? 4 : 2);
+            _processSettings.frameBlendCount = (menuItem.Checked ? 4 : 2);
         }
 
         private void enableShadowReductionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var menuItem = sender as ToolStripMenuItem;
             menuItem.Checked = !menuItem.Checked;
-            processSettings.enableShadowReduction = menuItem.Checked;
+            _processSettings.enableShadowReduction = menuItem.Checked;
         }
 
         private void trackBar1_ValueChanged(object sender, EventArgs e)
