@@ -122,7 +122,11 @@ namespace cavapa
                 return;
             }
 
-            processingEnabled = false;
+            if (processingEnabled)
+            {
+                processingEnabled = false;
+                Thread.Sleep(500);
+            }
 
             string fname = Path.GetFileName(filepath);
             this.Text = "CAVAPA: " + fname + " v" + version.ToString();
@@ -302,6 +306,9 @@ namespace cavapa
             else
                 leadInFrames = 0L;
 
+            if (endFrame > videoFrameCount)
+                endFrame = videoFrameCount - 1;
+
             using (var vsd = new VideoStreamDecoder(url, HWDevice))
             {
                 Console.WriteLine($"codec name: {vsd.CodecName}");
@@ -465,13 +472,16 @@ namespace cavapa
                         processedFrameCount++;
                         frameNumber++;
 
-                        if (!processMultithreaded)
+                        if (!processMultithreaded && (frameNumber < endFrame))
                         {
                             // Off-load some processing to another thread to allow faster updates on the main processing thread
                             Task.Run(() =>
                             {
-                                Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-                                UpdateProcessMainView(currImage.Mat);
+                                try
+                                {
+                                    UpdateProcessMainView(currImage.Mat);
+                                }
+                                catch { }
                             });
                         }
                     }
@@ -696,7 +706,12 @@ namespace cavapa
 
                         var data = movementScores;
                         for (int i = 0; i < data.Length; i++)
-                            file.WriteLine($"{i + 1},{data[i]:F3}");
+                        {
+                            float d = data[i];
+                            if (!(d > 0 && d < 1E10f))
+                                d = 0;
+                            file.WriteLine($"{i + 1},{d:F3}");
+                        }
 
                         file.Flush();
                         file.Close();
