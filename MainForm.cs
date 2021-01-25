@@ -27,10 +27,8 @@ namespace cavapa
         string _videoFilepath = "";
         string _csvExportPath = "";
 
-        bool _maskSet = true;
         bool _processingEnabled = true;
         bool _processingSleep = false;
-        ProcessSettings _processSettings = new ProcessSettings();
         long _videoFrameCount = 0;
         float _videoFrameRate = 25.0f;
         float[] _movementScores = null;
@@ -41,12 +39,14 @@ namespace cavapa
 
         Image<Gray, byte> _movement;
         Image<Gray, byte> _movementHist;
+        bool _maskSet = true;
         Image<Gray, byte> _mask = null;
 
         FPSTimer _perfTimer = null;
         Bitmap _bmpChart = null;
         PictureBox _pictureBoxChart = null;
         Form _settingsForm = null;
+        //ProcessSettings _processSettings = new ProcessSettings();
         SettingsControl _settingsControl = null;
 
         private static int _trackBarPos = 0;
@@ -82,8 +82,8 @@ namespace cavapa
             //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../CameraB_cut.mp4");
             //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../kilp_2011_8_22-10-koris-deint.mp4");
 
-            enableFlickerReductionToolStripMenuItem.Checked = (_processSettings.frameBlendCount > 1);
-            enableShadowReductionToolStripMenuItem.Checked = _settingsControl.EnableShadowReduction;
+            //enableFlickerReductionToolStripMenuItem.Checked = (_processSettings.frameBlendCount > 1);
+            //enableShadowReductionToolStripMenuItem.Checked = _settingsControl.EnableShadowReduction;
 
             this.tableLayoutPanel1.RowCount = 4;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 120F));
@@ -175,17 +175,6 @@ namespace cavapa
             trackBar1.Value = 0;
             trackBar1.Maximum = videoInfo.frameCount;
             statusVideoDuration.Text = $"/{TimeSpan.FromMilliseconds(videoInfo.duration):hh\\:mm\\:ss}";
-
-            if (videoInfo.Width >= 720)
-            {
-                _processSettings.frameBlendCount = 2;
-                enableFlickerReductionToolStripMenuItem.Checked = false;
-            }
-            else
-            {
-                _processSettings.frameBlendCount = 4;
-                enableFlickerReductionToolStripMenuItem.Checked = true;
-            }
 
             _processedFrameCount = 0L;
             _movementScoreMax = 0;
@@ -343,7 +332,7 @@ namespace cavapa
                     //    backgroundBuilders[i] = new FrameBlender(width, height, processSettings.backgroundFrameBlendCount);
                     //    bgs[i] = new Bitmap(width, height, PixelFormat.Format32bppArgb);
                     //}
-                    FrameBlender frameSmoother = new FrameBlender(width, height, _processSettings.frameBlendCount);
+                    //FrameBlender frameSmoother = new FrameBlender(width, height, _processSettings.frameBlendCount);
                     Image<Bgra, byte> background = null;
                     var bgBuilder = new Emgu.CV.BackgroundSubtractorMOG2(250, 16, false);
                     Image<Gray, byte> foregroundMask = new Image<Gray, byte>(width, height);
@@ -458,7 +447,7 @@ namespace cavapa
                             // https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings
                             statusLabel.Text = $"{time:hh\\:mm\\:ss}";
                             statusProcessingRate.Text = $"Processing@{ processingRate: 0.0}x";
-                            var moveScore = _movement.GetSum().Intensity * _processSettings.movementScoreMul;
+                            var moveScore = _movement.GetSum().Intensity * _settingsControl.MovementScoreMul;
                             if (framesSinceSeek == framesSinceSeekThresh)
                             {
                                 if (_frameNumber < _movementScores.Length)
@@ -503,7 +492,7 @@ namespace cavapa
 
         private void UpdateProcessMainView(Mat currImageMat) 
         {
-            _movementHist = (_movementHist.Mat * _processSettings.movementHistoryDecay).ToImage<Gray, byte>();
+            _movementHist = (_movementHist.Mat * _settingsControl.MovementHistoryDecay).ToImage<Gray, byte>();
             _movementHist = (_movementHist.Mat + _movement.Mat).ToImage<Gray, byte>();
 
             Image<Bgr, byte> moveImg = _movementHist.Convert<Bgr, byte>();
@@ -743,20 +732,6 @@ namespace cavapa
         {
             Properties.Settings.Default.Save();
             _processingEnabled = false;
-        }
-
-        private void enableFlickerReductionToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var menuItem = sender as ToolStripMenuItem;
-            menuItem.Checked = !menuItem.Checked;
-            _processSettings.frameBlendCount = (menuItem.Checked ? 4 : 2);
-        }
-
-        private void enableShadowReductionToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var menuItem = sender as ToolStripMenuItem;
-            menuItem.Checked = !menuItem.Checked;
-            _processSettings.enableShadowReduction = menuItem.Checked;
         }
 
         private void trackBar1_ValueChanged(object sender, EventArgs e)
