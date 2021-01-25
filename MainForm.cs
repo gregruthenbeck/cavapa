@@ -41,6 +41,7 @@ namespace cavapa
 
         Image<Gray, byte> _movement;
         Image<Gray, byte> _movementHist;
+        Image<Gray, byte> _mask = null;
 
         FPSTimer _perfTimer = null;
         Bitmap _bmpChart = null;
@@ -350,7 +351,6 @@ namespace cavapa
                     var prevForeground = new Image<Bgr, byte>(width, height);
                     //var movement = new Image<Gray, byte>(width, height);
                     //var movementHist = new Image<Gray, byte>(width, height);
-                    Image<Gray, byte> mask = null;
 
                     bool decoderActive = true;
                     AVFrame frame;
@@ -401,18 +401,18 @@ namespace cavapa
 
                         if (!_maskSet)
                         {
-                            using (Bitmap bmp = ShowEditMaskForm(currImage.ToBitmap(), mask))
+                            using (Bitmap bmp = ShowEditMaskForm(currImage.ToBitmap(), _mask))
                             {
                                 _maskSet = true;
 
                                 if (bmp == null)
                                     continue;
 
-                                mask = GetMatFromSDImage(bmp).ToImage<Bgra, byte>()[2]; // mask is red-channel
+                                _mask = GetMatFromSDImage(bmp).ToImage<Bgra, byte>()[2]; // mask is red-channel
                                 // Clean-up and invert to form the correct mask
                                 var whiteImg = new Image<Gray, byte>(width, height);
                                 whiteImg.SetValue(255);
-                                mask = whiteImg.Copy(mask).Not();
+                                _mask = whiteImg.Copy(_mask).Not();
                             }
                         }
 
@@ -443,8 +443,8 @@ namespace cavapa
                         Mat moveMat = currForeground.Mat - prevForeground.Mat;
                         _movement = ((moveMat - _settingsControl.MovementNoiseFloor) * _settingsControl.MovementPixMul).ToImage<Bgr, byte>().Convert<Gray,byte>();
 
-                        if (mask != null)
-                            _movement = _movement.Copy(mask);
+                        if (_mask != null)
+                            _movement = _movement.Copy(_mask);
 
                         currImage = new Image<Bgr, byte>(width, height, convertedFrame.linesize[0], (IntPtr)convertedFrame.data[0]);
                         prevImage.Bytes = currImage.Bytes;
@@ -767,6 +767,46 @@ namespace cavapa
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _settingsForm.ShowDialog();
+        }
+
+        private void exportMaskToolStripMenuItem_Click(object sender, EventArgs e) {
+            if (_mask == null) {
+                MessageBox.Show("No mask has been set.", "Export failed");
+                return;
+            }
+
+            try {
+                _processingSleep = true;
+                SaveFileDialog dlg = new SaveFileDialog();
+                dlg.Filter = "Mask (png)|*.png;*.Png;*.PNG;*.png;*.Png;*.PNG|" +
+                        "All files (*.*)|*.*";
+                dlg.FileName = Path.GetDirectoryName(_videoFilepath) + "\\" +
+                    Path.GetFileNameWithoutExtension(_videoFilepath) + "-mask.png";
+                if (dlg.ShowDialog() == DialogResult.OK) {
+                    _mask.Save(dlg.FileName);
+                }
+            } 
+            finally {
+                _processingSleep = false;
+            }
+        }
+
+        private void importMaskToolStripMenuItem_Click(object sender, EventArgs e) {
+            try {
+                _processingSleep = true;
+                OpenFileDialog dlg = new OpenFileDialog();
+                dlg.Filter = "Mask (png)|*.png;*.Png;*.PNG;*.png;*.Png;*.PNG|" +
+                        "All files (*.*)|*.*";
+                if (File.Exists(_videoFilepath)) {
+                    dlg.FileName = Path.GetDirectoryName(_videoFilepath) + "\\" +
+                        Path.GetFileNameWithoutExtension(_videoFilepath) + "-mask.png";
+                }
+                if (dlg.ShowDialog() == DialogResult.OK) {
+                    _mask = new Image<Gray, byte>(dlg.FileName);
+                }
+            } finally {
+                _processingSleep = false;
+            }
         }
     }
 }
