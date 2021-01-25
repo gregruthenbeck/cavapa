@@ -10,8 +10,7 @@ using System.Windows.Forms;
 
 namespace cavapa
 {
-    public partial class SettingsControl : UserControl
-    {
+    public partial class SettingsControl : UserControl {
         public double FrameSmoothingAlpha {
             get {
                 return trackBarExFrameSmoothAlpha.Val;
@@ -28,7 +27,7 @@ namespace cavapa
                 checkBoxShadowReduceEnabled.Checked = value;
             }
         }
-        public double movementHistoryDecay {
+        public double MovementHistoryDecay {
             get {
                 return trackBarExGlowTrail.Val;
             }
@@ -42,6 +41,14 @@ namespace cavapa
             }
             set {
                 trackBarExMoveScoreMul.Val = value;
+            }
+        }
+        public double MovementPixMul {
+            get {
+                return trackBarExMoveMul.Val;
+            }
+            set {
+                trackBarExMoveMul.Val = value;
             }
         }
         public double MovementNoiseFloor {

@@ -45,6 +45,8 @@ namespace cavapa
         FPSTimer _perfTimer = null;
         Bitmap _bmpChart = null;
         PictureBox _pictureBoxChart = null;
+        Form _settingsForm = null;
+        SettingsControl _settingsControl = null;
 
         private static int _trackBarPos = 0;
 
@@ -68,7 +70,8 @@ namespace cavapa
             SetupLogging();
 
             // shorten the bright-green glow-trail of movements (default is 0.9)
-            _processSettings.movementHistoryDecay = 0.85; 
+            _settingsControl = new SettingsControl();
+            _settingsControl.MovementHistoryDecay = 0.85; 
             //processSettings.frameBlendCount = 2;
             //processSettings.movementMultiplier = 20.0;
 
@@ -79,7 +82,7 @@ namespace cavapa
             //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../kilp_2011_8_22-10-koris-deint.mp4");
 
             enableFlickerReductionToolStripMenuItem.Checked = (_processSettings.frameBlendCount > 1);
-            enableShadowReductionToolStripMenuItem.Checked = _processSettings.enableShadowReduction;
+            enableShadowReductionToolStripMenuItem.Checked = _settingsControl.EnableShadowReduction;
 
             this.tableLayoutPanel1.RowCount = 4;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 120F));
@@ -91,18 +94,16 @@ namespace cavapa
 
             UpdateRecentItems();
 
-            Form settingsForm = new Form();
-            var settingsControl = new SettingsControl();
-            settingsForm.Controls.Add(settingsControl);
-            settingsForm.Controls[0].Dock = DockStyle.Fill;
-            settingsForm.Size = new Size(409, 320);
-            settingsForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-            settingsForm.MaximizeBox = false;
-            settingsForm.MinimizeBox = false;
-            settingsForm.Text = "CAVAPA Settings";
-            settingsForm.StartPosition = FormStartPosition.CenterParent;
-            settingsForm.CancelButton = settingsControl.CloseButton;
-            settingsForm.ShowDialog();
+            _settingsForm = new Form();
+            _settingsForm.Controls.Add(_settingsControl);
+            _settingsForm.Controls[0].Dock = DockStyle.Fill;
+            _settingsForm.Size = new Size(409, 320);
+            _settingsForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            _settingsForm.MaximizeBox = false;
+            _settingsForm.MinimizeBox = false;
+            _settingsForm.Text = "CAVAPA Settings";
+            _settingsForm.StartPosition = FormStartPosition.CenterParent;
+            _settingsForm.CancelButton = _settingsControl.CloseButton;
         }
 
         private void UpdateRecentItems() 
@@ -390,7 +391,7 @@ namespace cavapa
                         // Shadow reduction: Shadows are lindear and less vertical, so stretch the image wider
                         // and then resize back to original aspect-ratio to discard some horizontal detail.
                         // Also, people are taller than bikes & balls
-                        if (_processSettings.enableShadowReduction)
+                        if (_settingsControl.EnableShadowReduction)
                             currImage = currImage.Resize(width, height / 8, Emgu.CV.CvEnum.Inter.Area).Resize(width, height, Emgu.CV.CvEnum.Inter.Area);
 
                         // Smooth using multiple frames
@@ -440,7 +441,7 @@ namespace cavapa
                         //currForeground = currImage.Copy(foregroundMask.Not());
 
                         Mat moveMat = currForeground.Mat - prevForeground.Mat;
-                        _movement = ((moveMat - _processSettings.movementNoiseFloor) * _processSettings.movementMultiplier).ToImage<Bgr, byte>().Convert<Gray,byte>();
+                        _movement = ((moveMat - _settingsControl.MovementNoiseFloor) * _settingsControl.MovementPixMul).ToImage<Bgr, byte>().Convert<Gray,byte>();
 
                         if (mask != null)
                             _movement = _movement.Copy(mask);
@@ -765,14 +766,7 @@ namespace cavapa
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Form settingsForm = new Form();
-            var settingsControl = new SettingsControl();
-            settingsForm.Controls.Add(settingsControl);
-            settingsForm.Controls[0].Dock = DockStyle.Fill;
-            settingsForm.Size = new Size(487, 980);
-            settingsForm.Text = "CAVAPA Settings";
-            settingsForm.StartPosition = FormStartPosition.CenterParent;
-            settingsForm.Show();
+            _settingsForm.ShowDialog();
         }
     }
 }

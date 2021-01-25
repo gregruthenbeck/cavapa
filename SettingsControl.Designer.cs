@@ -33,11 +33,12 @@ namespace cavapa
             this.checkBoxShadowReduceEnabled = new System.Windows.Forms.CheckBox();
             this.buttonApply = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.trackBarExGlowTrail = new cavapa.TrackBarEx();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.trackBarExFrameSmoothAlpha = new cavapa.TrackBarEx();
             this.trackBarExNoiseThresh = new cavapa.TrackBarEx();
             this.trackBarExMoveScoreMul = new cavapa.TrackBarEx();
-            this.trackBarExGlowTrail = new cavapa.TrackBarEx();
+            this.trackBarExMoveMul = new cavapa.TrackBarEx();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
@@ -54,11 +55,10 @@ namespace cavapa
             // checkBoxShadowReduceEnabled
             // 
             this.checkBoxShadowReduceEnabled.AutoSize = true;
-            this.checkBoxShadowReduceEnabled.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.checkBoxShadowReduceEnabled.Location = new System.Drawing.Point(3, 143);
+            this.checkBoxShadowReduceEnabled.Location = new System.Drawing.Point(6, 367);
             this.checkBoxShadowReduceEnabled.Name = "checkBoxShadowReduceEnabled";
-            this.checkBoxShadowReduceEnabled.Padding = new System.Windows.Forms.Padding(210, 0, 0, 0);
-            this.checkBoxShadowReduceEnabled.Size = new System.Drawing.Size(583, 71);
+            this.checkBoxShadowReduceEnabled.Padding = new System.Windows.Forms.Padding(120, 0, 0, 0);
+            this.checkBoxShadowReduceEnabled.Size = new System.Drawing.Size(290, 24);
             this.checkBoxShadowReduceEnabled.TabIndex = 1;
             this.checkBoxShadowReduceEnabled.Text = "Shadow Reduction";
             this.checkBoxShadowReduceEnabled.UseVisualStyleBackColor = true;
@@ -84,18 +84,33 @@ namespace cavapa
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Render Settings";
             // 
+            // trackBarExGlowTrail
+            // 
+            this.trackBarExGlowTrail.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.trackBarExGlowTrail.Label = "Glow-Trail Strength";
+            this.trackBarExGlowTrail.LabelWidth = 160;
+            this.trackBarExGlowTrail.Location = new System.Drawing.Point(3, 22);
+            this.trackBarExGlowTrail.Margin = new System.Windows.Forms.Padding(3, 3, 3, 8);
+            this.trackBarExGlowTrail.Name = "trackBarExGlowTrail";
+            this.trackBarExGlowTrail.Size = new System.Drawing.Size(576, 44);
+            this.trackBarExGlowTrail.TabIndex = 5;
+            this.trackBarExGlowTrail.Val = 0.9D;
+            this.trackBarExGlowTrail.ValMax = 0.99D;
+            this.trackBarExGlowTrail.ValMin = 0.5D;
+            // 
             // tableLayoutPanel1
             // 
             this.tableLayoutPanel1.ColumnCount = 1;
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Controls.Add(this.checkBoxShadowReduceEnabled, 0, 4);
             this.tableLayoutPanel1.Controls.Add(this.trackBarExFrameSmoothAlpha, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.trackBarExNoiseThresh, 0, 2);
             this.tableLayoutPanel1.Controls.Add(this.trackBarExMoveScoreMul, 0, 3);
+            this.tableLayoutPanel1.Controls.Add(this.trackBarExMoveMul, 0, 4);
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 5;
+            this.tableLayoutPanel1.RowCount = 6;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
@@ -127,9 +142,9 @@ namespace cavapa
             this.trackBarExNoiseThresh.Name = "trackBarExNoiseThresh";
             this.trackBarExNoiseThresh.Size = new System.Drawing.Size(577, 40);
             this.trackBarExNoiseThresh.TabIndex = 1;
+            this.trackBarExNoiseThresh.Val = 0.7D;
             this.trackBarExNoiseThresh.ValMax = 10D;
             this.trackBarExNoiseThresh.ValMin = 0D;
-            this.trackBarExNoiseThresh.Val = 0.7D;
             // 
             // trackBarExMoveScoreMul
             // 
@@ -142,38 +157,39 @@ namespace cavapa
             this.trackBarExMoveScoreMul.Size = new System.Drawing.Size(577, 40);
             this.trackBarExMoveScoreMul.TabIndex = 2;
             this.trackBarExMoveScoreMul.ValMax = 100000D;
-            this.trackBarExMoveScoreMul.ValMin = 0.0000001D;
+            this.trackBarExMoveScoreMul.ValMin = 1E-07D;
             this.trackBarExMoveScoreMul.Val = 0.001D;
             // 
-            // trackBarExGlowTrail
+            // trackBarExMoveMul
             // 
-            this.trackBarExGlowTrail.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.trackBarExGlowTrail.Label = "Glow-Trail Strength";
-            this.trackBarExGlowTrail.LabelWidth = 160;
-            this.trackBarExGlowTrail.Location = new System.Drawing.Point(3, 22);
-            this.trackBarExGlowTrail.Margin = new System.Windows.Forms.Padding(3, 3, 3, 8);
-            this.trackBarExGlowTrail.Name = "trackBarExGlowTrail";
-            this.trackBarExGlowTrail.Size = new System.Drawing.Size(576, 44);
-            this.trackBarExGlowTrail.TabIndex = 5;
-            this.trackBarExGlowTrail.ValMax = 0.99D;
-            this.trackBarExGlowTrail.ValMin = 0.5D;
-            this.trackBarExGlowTrail.Val = 0.9D;
+            this.trackBarExMoveMul.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.trackBarExMoveMul.Label = "Movement Pix X";
+            this.trackBarExMoveMul.LabelWidth = 180;
+            this.trackBarExMoveMul.Location = new System.Drawing.Point(0, 140);
+            this.trackBarExMoveMul.Margin = new System.Windows.Forms.Padding(0, 0, 12, 0);
+            this.trackBarExMoveMul.Name = "trackBarExMoveMul";
+            this.trackBarExMoveMul.Size = new System.Drawing.Size(577, 40);
+            this.trackBarExMoveMul.TabIndex = 3;
+            this.trackBarExMoveMul.ValMax = 100D;
+            this.trackBarExMoveMul.ValMin = 0.1D;
+            this.trackBarExMoveMul.Val = 5.0D;
             // 
             // SettingsControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.checkBoxShadowReduceEnabled);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.buttonApply);
             this.Controls.Add(this.buttonClose);
             this.Name = "SettingsControl";
-            this.Size = new System.Drawing.Size(589, 435);
+            this.Size = new System.Drawing.Size(589, 433);
             this.Load += new System.EventHandler(this.SettingsControl_Load);
             this.groupBox1.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
-            this.tableLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -188,5 +204,6 @@ namespace cavapa
         private TrackBarEx trackBarExNoiseThresh;
         private TrackBarEx trackBarExMoveScoreMul;
         private TrackBarEx trackBarExGlowTrail;
+        private TrackBarEx trackBarExMoveMul;
     }
 }
