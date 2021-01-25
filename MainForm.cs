@@ -202,7 +202,7 @@ namespace cavapa
             Task.Run(() =>
             {
                 Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-                ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, filepath);
+                ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, filepath, 0, 0, _videoFrameCount - 1);
             });
         }
 
