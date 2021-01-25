@@ -783,5 +783,41 @@ namespace cavapa
                 _processingSleep = false;
             }
         }
+
+        private void saveSettingsToolStripMenuItem_Click(object sender, EventArgs e) {
+            try {
+                _processingSleep = true;
+                SaveFileDialog dlg = new SaveFileDialog();
+                dlg.Filter = "Settings (cfg,txt)|*.cfg;*.Cfg;*.CFG;*.txt;*.Txt;*.TXT|" +
+                        "All files (*.*)|*.*";
+                if (File.Exists(_videoFilepath)) {
+                    dlg.FileName = Path.GetDirectoryName(_videoFilepath) + "\\" +
+                        Path.GetFileNameWithoutExtension(_videoFilepath) + "-settings.txt";
+                }
+                if (dlg.ShowDialog() == DialogResult.OK) {
+                    _settingsControl.SaveSettings(dlg.FileName);
+                }
+            } finally {
+                _processingSleep = false;
+            }
+        }
+
+        private void loadSettingsToolStripMenuItem_Click(object sender, EventArgs e) {
+            try {
+                _processingSleep = true;
+                OpenFileDialog dlg = new OpenFileDialog();
+                dlg.Filter = "Settings (cfg,txt)|*.cfg;*.Cfg;*.CFG;*.txt;*.Txt;*.TXT|" +
+                        "All files (*.*)|*.*";
+                if (File.Exists(_videoFilepath)) {
+                    dlg.FileName = Path.GetDirectoryName(_videoFilepath) + "\\" + 
+                        Path.GetFileNameWithoutExtension(_videoFilepath) + "-settings.txt";
+                }
+                if (dlg.ShowDialog() == DialogResult.OK) {
+                    _settingsControl.LoadSettings(dlg.FileName);
+                }
+            } finally {
+                _processingSleep = false;
+            }
+        }
     }
 }
