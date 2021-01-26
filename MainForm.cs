@@ -106,8 +106,20 @@ namespace cavapa
             _settingsForm.StartPosition = FormStartPosition.CenterParent;
             _settingsForm.CancelButton = _settingsControl.CloseButton;
 
-            //var successForm = new ProcessingCompleteForm();
-            //successForm.ShowDialog();
+            string[] args = Environment.GetCommandLineArgs();
+            if (args != null && args.Length > 1 &&
+                File.Exists(args[1])) {
+                try {
+                    if (args.Length > 2 && File.Exists(args[2])) {
+                        string ext = Path.GetExtension(args[2]).ToLower();
+                        if (ext == ".txt" || ext == ".cfg") {
+                            LoadSettings(args[2]);
+                        }
+                    }
+                    OpenVideo(args[1]);
+                } catch { 
+                }
+            }
         }
 
         private void UpdateRecentItems() 
@@ -818,6 +830,16 @@ namespace cavapa
                 if (dlg.ShowDialog() == DialogResult.OK) {
                     _settingsControl.SaveSettings(dlg.FileName);
                 }
+            } finally {
+                _processingSleep = false;
+            }
+        }
+
+        private void LoadSettings(string filepath) {
+            try {
+                _processingSleep = true;
+                _settingsControl.LoadSettings(filepath);
+            } catch {
             } finally {
                 _processingSleep = false;
             }
