@@ -90,6 +90,12 @@
       <DependentUpon>MaskForm.cs</DependentUpon>
     </Compile>
     <Compile Include="MediaDecoder.cs" />
+    <Compile Include="ProcessingCompleteForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProcessingCompleteForm.Designer.cs">
+      <DependentUpon>ProcessingCompleteForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ProcessingModalDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -120,6 +126,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MaskForm.resx">
       <DependentUpon>MaskForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProcessingCompleteForm.resx">
+      <DependentUpon>ProcessingCompleteForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ProcessingModalDialog.resx">
       <DependentUpon>ProcessingModalDialog.cs</DependentUpon>
@@ -159,6 +168,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Properties\check.png" />
     <Content Include="x64\MediaInfo.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

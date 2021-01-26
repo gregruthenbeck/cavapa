@@ -105,6 +105,9 @@ namespace cavapa
             _settingsForm.Text = "CAVAPA Settings";
             _settingsForm.StartPosition = FormStartPosition.CenterParent;
             _settingsForm.CancelButton = _settingsControl.CloseButton;
+
+            //var successForm = new ProcessingCompleteForm();
+            //successForm.ShowDialog();
         }
 
         private void UpdateRecentItems() 
@@ -485,9 +488,13 @@ namespace cavapa
 
         private void ProcessingCompleteAndExport() 
         {
+            var successForm = new ProcessingCompleteForm();
+            successForm.Filename = Path.GetFileName(_videoFilepath);
             if ((_processedFrameCount > (long)(0.98 * (double)_videoFrameCount)) &&
-                MessageBox.Show("SUCCESS\nProcessing is complete.\n\nExport data to CSV?", "Processing Complete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                exportCSVDataFileToolStripMenuItem_Click(this, null);
+                 successForm.ShowDialog() == DialogResult.OK) {
+                exportCSVDataFileToolStripMenuItem_Click(this, new ProcessingCompletedEventArgs(successForm.OpenAfterExportEnabled));
+            }
+
         }
 
         private void UpdateProcessMainView(Mat currImageMat) 
@@ -722,8 +729,22 @@ namespace cavapa
                 catch (Exception ex) {
                     MessageBox.Show(ex.Message, "Save Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
-                if (saveSuccess)
+                bool openInExcel = false;
+                try {
+                    var args = e as ProcessingCompletedEventArgs;
+                    openInExcel = args.OpenAfterExport;
+                } catch {
+                }
+
+                if (saveSuccess && !openInExcel)
                     MessageBox.Show($"CSV data successfully exported to \"{_csvExportPath}\". \n\n{_movementScores.Length:#,##0} rows written", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                if (openInExcel) {
+                    System.Diagnostics.Process proc = new System.Diagnostics.Process();
+                    proc.EnableRaisingEvents = false;
+                    proc.StartInfo.FileName = _csvExportPath;
+                    proc.Start();
+                }
             }
             _processingSleep = false;
         }
