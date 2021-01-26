@@ -126,11 +126,16 @@
 A Windows 10 GUI application that computes a measurement of movement (physical activity). 
 Select a video file and a CSV file containing the motion measurement is generated.
 
+This program can be run from the command-line (easier for scripted processing):
+	$cavapa.exe video.mp4 settings.txt
+Or simply:
+	$cavapa.exe video.mp4
+
+Detailed information and source code is available from the project website at:
 https://cavapa.ruthenbeck.io
 https://github.com/gregruthenbeck/cavapa
 
-Dependencies
-
+This application uses the following software-libraries:
     C# .NET Framework 4.2.7 (built for Windows 10)
     OpenCV via EmguCV: Image processing (with hardware acceleration)
     FFmpeg via FFmpeg.AutoGen: Decodes video frames (with hardware acceleration)</value>
