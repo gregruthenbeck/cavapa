@@ -28,6 +28,14 @@ namespace cavapa
                 checkBoxShadowReduceEnabled.Checked = value;
             }
         }
+        public bool EnableDespeckle {
+            get {
+                return checkBoxDeSpeckle.Checked;
+            }
+            set {
+                checkBoxDeSpeckle.Checked = value;
+            }
+        }
         public double MovementHistoryDecay {
             get {
                 return trackBarExGlowTrail.Val;
@@ -94,6 +102,7 @@ namespace cavapa
                 file.WriteLine($"MovementScoreMul={MovementScoreMul.ToString()}");
                 file.WriteLine($"MovementPixMul={MovementPixMul.ToString()}");
                 file.WriteLine($"MovementNoiseFloor={MovementNoiseFloor.ToString()}");
+                file.WriteLine($"EnableDespeckle={EnableDespeckle.ToString()}");
                 file.WriteLine();
                 file.Flush();
                 file.Close();
@@ -133,6 +142,11 @@ namespace cavapa
                     bool d = false;
                     if (bool.TryParse(data["EnableShadowReduction"], out d))
                         EnableShadowReduction = d;
+                }
+                if (data.ContainsKey("EnableDespeckle")) {
+                    bool d = false;
+                    if (bool.TryParse(data["EnableDespeckle"], out d))
+                        EnableDespeckle = d;
                 }
                 if (data.ContainsKey("MovementHistoryDecay")) {
                     double d = 0;

@@ -187,6 +187,8 @@ namespace cavapa
             _videoFrameRate = videoInfo.frameRate;
             _videoFrameCount = videoInfo.frameCount;
 
+            _settingsControl.EnableDespeckle = videoInfo.height < 720; // disable de-speckle for HD videos (speed)
+
             trackBar1.Value = 0;
             trackBar1.Maximum = videoInfo.frameCount;
             statusVideoDuration.Text = $"/{TimeSpan.FromMilliseconds(videoInfo.duration):hh\\:mm\\:ss}";
@@ -194,8 +196,7 @@ namespace cavapa
             _processedFrameCount = 0L;
             _movementScoreMax = 0;
             _movementScores = new float[_videoFrameCount + 1];
-            for (int i = 0; i < _movementScores.Length; i++)
-            {
+            for (int i = 0; i < _movementScores.Length; i++) {
                 _movementScores[i] = float.NegativeInfinity;
             }
 
@@ -400,7 +401,9 @@ namespace cavapa
 
                         // Smooth using multiple frames
                         // Use 10% of previous frame for some speckle-noise & flicker reduction
-                        currImage = (0.9 * currImage.Mat + 0.1 * prevImage.Mat).ToImage<Bgr, byte>();
+                        if (_settingsControl.EnableDespeckle)
+                            currImage = currImage.SmoothGaussian(3);
+                        currImage = (0.3 * currImage.Mat + 0.7 * prevImage.Mat).ToImage<Bgr, byte>();
                         //currImage = frameSmoother.Update(currImage.ToBitmap()).ToImage<Bgr, byte>();
 
                         if (!_maskSet)
@@ -442,6 +445,8 @@ namespace cavapa
 
                         Mat foregroundMat = background.Convert<Bgr,byte>().Not().Mat + currImage.Mat;
                         currForeground = foregroundMat.ToImage<Bgr, byte>();
+                        if (_settingsControl.EnableDespeckle)
+                            currForeground = currForeground.SmoothGaussian(3); // remove speckle (video low-light noise, small birds, insects, etc)
                         //currForeground = currImage.Copy(foregroundMask.Not());
 
                         Mat moveMat = currForeground.Mat - prevForeground.Mat;
@@ -788,6 +793,7 @@ namespace cavapa
                 SaveFileDialog dlg = new SaveFileDialog();
                 dlg.Filter = "Mask (png)|*.png;*.Png;*.PNG;*.png;*.Png;*.PNG|" +
                         "All files (*.*)|*.*";
+                dlg.InitialDirectory = Path.GetDirectoryName(_videoFilepath);
                 dlg.FileName = Path.GetDirectoryName(_videoFilepath) + "\\" +
                     Path.GetFileNameWithoutExtension(_videoFilepath) + "-mask.png";
                 if (dlg.ShowDialog() == DialogResult.OK) {
@@ -806,6 +812,7 @@ namespace cavapa
                 dlg.Filter = "Mask (png)|*.png;*.Png;*.PNG;*.png;*.Png;*.PNG|" +
                         "All files (*.*)|*.*";
                 if (File.Exists(_videoFilepath)) {
+                    dlg.InitialDirectory = Path.GetDirectoryName(_videoFilepath);
                     dlg.FileName = Path.GetDirectoryName(_videoFilepath) + "\\" +
                         Path.GetFileNameWithoutExtension(_videoFilepath) + "-mask.png";
                 }
@@ -824,6 +831,7 @@ namespace cavapa
                 dlg.Filter = "Settings (cfg,txt)|*.cfg;*.Cfg;*.CFG;*.txt;*.Txt;*.TXT|" +
                         "All files (*.*)|*.*";
                 if (File.Exists(_videoFilepath)) {
+                    dlg.InitialDirectory = Path.GetDirectoryName(_videoFilepath);
                     dlg.FileName = Path.GetDirectoryName(_videoFilepath) + "\\" +
                         Path.GetFileNameWithoutExtension(_videoFilepath) + "-settings.txt";
                 }

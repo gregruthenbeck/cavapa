@@ -39,6 +39,7 @@ namespace cavapa
             this.trackBarExNoiseThresh = new cavapa.TrackBarEx();
             this.trackBarExMoveScoreMul = new cavapa.TrackBarEx();
             this.trackBarExMoveMul = new cavapa.TrackBarEx();
+            this.checkBoxDeSpeckle = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
@@ -55,7 +56,7 @@ namespace cavapa
             // checkBoxShadowReduceEnabled
             // 
             this.checkBoxShadowReduceEnabled.AutoSize = true;
-            this.checkBoxShadowReduceEnabled.Location = new System.Drawing.Point(6, 367);
+            this.checkBoxShadowReduceEnabled.Location = new System.Drawing.Point(0, 345);
             this.checkBoxShadowReduceEnabled.Name = "checkBoxShadowReduceEnabled";
             this.checkBoxShadowReduceEnabled.Padding = new System.Windows.Forms.Padding(120, 0, 0, 0);
             this.checkBoxShadowReduceEnabled.Size = new System.Drawing.Size(290, 24);
@@ -128,9 +129,9 @@ namespace cavapa
             this.trackBarExFrameSmoothAlpha.Name = "trackBarExFrameSmoothAlpha";
             this.trackBarExFrameSmoothAlpha.Size = new System.Drawing.Size(577, 40);
             this.trackBarExFrameSmoothAlpha.TabIndex = 0;
+            this.trackBarExFrameSmoothAlpha.Val = 0.9D;
             this.trackBarExFrameSmoothAlpha.ValMax = 0.999D;
             this.trackBarExFrameSmoothAlpha.ValMin = 0.8D;
-            this.trackBarExFrameSmoothAlpha.Val = 0.9D;
             // 
             // trackBarExNoiseThresh
             // 
@@ -156,9 +157,9 @@ namespace cavapa
             this.trackBarExMoveScoreMul.Name = "trackBarExMoveScoreMul";
             this.trackBarExMoveScoreMul.Size = new System.Drawing.Size(577, 40);
             this.trackBarExMoveScoreMul.TabIndex = 2;
+            this.trackBarExMoveScoreMul.Val = 0.001D;
             this.trackBarExMoveScoreMul.ValMax = 100000D;
             this.trackBarExMoveScoreMul.ValMin = 1E-07D;
-            this.trackBarExMoveScoreMul.Val = 0.001D;
             // 
             // trackBarExMoveMul
             // 
@@ -170,14 +171,28 @@ namespace cavapa
             this.trackBarExMoveMul.Name = "trackBarExMoveMul";
             this.trackBarExMoveMul.Size = new System.Drawing.Size(577, 40);
             this.trackBarExMoveMul.TabIndex = 3;
+            this.trackBarExMoveMul.Val = 5D;
             this.trackBarExMoveMul.ValMax = 100D;
             this.trackBarExMoveMul.ValMin = 0.1D;
-            this.trackBarExMoveMul.Val = 5.0D;
+            // 
+            // checkBoxDeSpeckle
+            // 
+            this.checkBoxDeSpeckle.AutoSize = true;
+            this.checkBoxDeSpeckle.Checked = true;
+            this.checkBoxDeSpeckle.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxDeSpeckle.Location = new System.Drawing.Point(0, 375);
+            this.checkBoxDeSpeckle.Name = "checkBoxDeSpeckle";
+            this.checkBoxDeSpeckle.Padding = new System.Windows.Forms.Padding(120, 0, 0, 0);
+            this.checkBoxDeSpeckle.Size = new System.Drawing.Size(303, 24);
+            this.checkBoxDeSpeckle.TabIndex = 9;
+            this.checkBoxDeSpeckle.Text = "De-speckle/de-flicker";
+            this.checkBoxDeSpeckle.UseVisualStyleBackColor = true;
             // 
             // SettingsControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.checkBoxDeSpeckle);
             this.Controls.Add(this.checkBoxShadowReduceEnabled);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.groupBox1);
@@ -205,5 +220,6 @@ namespace cavapa
         private TrackBarEx trackBarExMoveScoreMul;
         private TrackBarEx trackBarExGlowTrail;
         private TrackBarEx trackBarExMoveMul;
+        private System.Windows.Forms.CheckBox checkBoxDeSpeckle;
     }
 }

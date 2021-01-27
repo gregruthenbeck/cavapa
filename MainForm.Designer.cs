@@ -41,11 +41,14 @@ namespace cavapa
             this.openVideoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.recentOneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.saveSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.exportCSVDataFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.exportMaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importMaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editMaskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -56,9 +59,6 @@ namespace cavapa
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
-            this.saveSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.loadSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
@@ -145,56 +145,75 @@ namespace cavapa
             // openVideoToolStripMenuItem
             // 
             this.openVideoToolStripMenuItem.Name = "openVideoToolStripMenuItem";
-            this.openVideoToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.openVideoToolStripMenuItem.Size = new System.Drawing.Size(266, 34);
             this.openVideoToolStripMenuItem.Text = "&Open Video";
             this.openVideoToolStripMenuItem.Click += new System.EventHandler(this.openVideoToolStripMenuItem_Click);
             // 
             // recentOneToolStripMenuItem
             // 
             this.recentOneToolStripMenuItem.Name = "recentOneToolStripMenuItem";
-            this.recentOneToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.recentOneToolStripMenuItem.Size = new System.Drawing.Size(266, 34);
             this.recentOneToolStripMenuItem.Text = "Open &Recent Video";
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(267, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(263, 6);
+            // 
+            // saveSettingsToolStripMenuItem
+            // 
+            this.saveSettingsToolStripMenuItem.Name = "saveSettingsToolStripMenuItem";
+            this.saveSettingsToolStripMenuItem.Size = new System.Drawing.Size(266, 34);
+            this.saveSettingsToolStripMenuItem.Text = "Save &Settings";
+            this.saveSettingsToolStripMenuItem.Click += new System.EventHandler(this.saveSettingsToolStripMenuItem_Click);
+            // 
+            // loadSettingsToolStripMenuItem
+            // 
+            this.loadSettingsToolStripMenuItem.Name = "loadSettingsToolStripMenuItem";
+            this.loadSettingsToolStripMenuItem.Size = new System.Drawing.Size(266, 34);
+            this.loadSettingsToolStripMenuItem.Text = "Load Se&ttings";
+            this.loadSettingsToolStripMenuItem.Click += new System.EventHandler(this.loadSettingsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(263, 6);
             // 
             // exportCSVDataFileToolStripMenuItem
             // 
             this.exportCSVDataFileToolStripMenuItem.Name = "exportCSVDataFileToolStripMenuItem";
-            this.exportCSVDataFileToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.exportCSVDataFileToolStripMenuItem.Size = new System.Drawing.Size(266, 34);
             this.exportCSVDataFileToolStripMenuItem.Text = "Export CSV &Data";
             this.exportCSVDataFileToolStripMenuItem.Click += new System.EventHandler(this.exportCSVDataFileToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(267, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(263, 6);
             // 
             // exportMaskToolStripMenuItem
             // 
             this.exportMaskToolStripMenuItem.Name = "exportMaskToolStripMenuItem";
-            this.exportMaskToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.exportMaskToolStripMenuItem.Size = new System.Drawing.Size(266, 34);
             this.exportMaskToolStripMenuItem.Text = "Export &Mask";
             this.exportMaskToolStripMenuItem.Click += new System.EventHandler(this.exportMaskToolStripMenuItem_Click);
             // 
             // importMaskToolStripMenuItem
             // 
             this.importMaskToolStripMenuItem.Name = "importMaskToolStripMenuItem";
-            this.importMaskToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.importMaskToolStripMenuItem.Size = new System.Drawing.Size(266, 34);
             this.importMaskToolStripMenuItem.Text = "&Import Mask";
             this.importMaskToolStripMenuItem.Click += new System.EventHandler(this.importMaskToolStripMenuItem_Click);
             // 
-            // toolStripSeparator5
+            // toolStripSeparator4
             // 
-            this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(267, 6);
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(263, 6);
             // 
             // closeToolStripMenuItem
             // 
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(266, 34);
             this.closeToolStripMenuItem.Text = "&Close";
             this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
@@ -211,19 +230,19 @@ namespace cavapa
             // editMaskToolStripMenuItem
             // 
             this.editMaskToolStripMenuItem.Name = "editMaskToolStripMenuItem";
-            this.editMaskToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.editMaskToolStripMenuItem.Size = new System.Drawing.Size(191, 34);
             this.editMaskToolStripMenuItem.Text = "Edit &Mask";
             this.editMaskToolStripMenuItem.Click += new System.EventHandler(this.editMaskToolStripMenuItem_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(267, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(188, 6);
             // 
             // settingsToolStripMenuItem
             // 
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(191, 34);
             this.settingsToolStripMenuItem.Text = "&Settings";
             this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
             // 
@@ -282,25 +301,6 @@ namespace cavapa
             this.trackBar1.TickFrequency = 250;
             this.trackBar1.TickStyle = System.Windows.Forms.TickStyle.Both;
             this.trackBar1.ValueChanged += new System.EventHandler(this.trackBar1_ValueChanged);
-            // 
-            // saveSettingsToolStripMenuItem
-            // 
-            this.saveSettingsToolStripMenuItem.Name = "saveSettingsToolStripMenuItem";
-            this.saveSettingsToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
-            this.saveSettingsToolStripMenuItem.Text = "Save &Settings";
-            this.saveSettingsToolStripMenuItem.Click += new System.EventHandler(this.saveSettingsToolStripMenuItem_Click);
-            // 
-            // loadSettingsToolStripMenuItem
-            // 
-            this.loadSettingsToolStripMenuItem.Name = "loadSettingsToolStripMenuItem";
-            this.loadSettingsToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
-            this.loadSettingsToolStripMenuItem.Text = "Load Se&ttings";
-            this.loadSettingsToolStripMenuItem.Click += new System.EventHandler(this.loadSettingsToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator4
-            // 
-            this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(267, 6);
             // 
             // MainForm
             // 
