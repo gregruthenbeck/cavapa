@@ -107,18 +107,24 @@ namespace cavapa
             _settingsForm.CancelButton = _settingsControl.CloseButton;
 
             string[] args = Environment.GetCommandLineArgs();
-            if (args != null && args.Length > 1 &&
-                File.Exists(args[1])) {
-                try {
-                    if (args.Length > 2 && File.Exists(args[2])) {
-                        string ext = Path.GetExtension(args[2]).ToLower();
-                        if (ext == ".txt" || ext == ".cfg") {
-                            LoadSettings(args[2]);
-                        }
-                    }
-                    OpenVideo(args[1]);
-                } catch { 
+            for (int i = 1; i < args.Length; i++) {
+                TryParseArg(args[i]);
+            }
+        }
+
+        private void TryParseArg(string arg) {
+            try {
+                if (!File.Exists(arg))
+                    return;
+                string ext = Path.GetExtension(arg).ToLower();
+                if (ext == ".txt" || ext == ".cfg") {
+                    LoadSettings(arg);
+                } else if (ext == ".png" && Path.GetFileNameWithoutExtension(arg).Contains("mask")) {
+                    _mask = new Image<Gray, byte>(arg);
+                } else if (ext == ".avi" || ext == ".mkv" || ext == ".mp4" || ext == ".mpeg" || ext == ".mov" || ext == ".mts" || ext == ".wmv") {
+                    OpenVideo(arg);
                 }
+            } catch {
             }
         }
 
