@@ -119,8 +119,12 @@ namespace cavapa
                     return;
                 string ext = Path.GetExtension(arg).ToLower();
                 if (ext == ".txt" || ext == ".cfg") {
+                    if (!File.Exists(arg)) // if not found, prepend the default folder
+                        arg = Path.GetDirectoryName(_videoFilepath) + "\\" + arg;
                     LoadSettings(arg);
                 } else if (ext == ".png" && Path.GetFileNameWithoutExtension(arg).Contains("mask")) {
+                    if (!File.Exists(arg)) // if not found, prepend the default folder
+                        arg = Path.GetDirectoryName(_videoFilepath) + "\\" + arg;
                     _mask = new Image<Gray, byte>(arg);
                 } else if (ext == ".avi" || ext == ".mkv" || ext == ".mp4" || ext == ".mpeg" || ext == ".mov" || ext == ".mts" || ext == ".wmv") {
                     OpenVideo(arg);
@@ -871,8 +875,6 @@ namespace cavapa
         private void LoadSettings(string filepath) {
             try {
                 _processingSleep = true;
-                if (!File.Exists(filepath)) // if not found, prepend the default folder
-                    filepath = Path.GetDirectoryName(_videoFilepath) + "\\" + filepath;
                 _settingsControl.LoadSettings(filepath);
             } catch {
             } finally {
