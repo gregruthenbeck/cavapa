@@ -171,9 +171,9 @@ namespace cavapa
             this.trackBarExMoveMul.Name = "trackBarExMoveMul";
             this.trackBarExMoveMul.Size = new System.Drawing.Size(577, 40);
             this.trackBarExMoveMul.TabIndex = 3;
-            this.trackBarExMoveMul.Val = 5D;
             this.trackBarExMoveMul.ValMax = 100D;
             this.trackBarExMoveMul.ValMin = 0.1D;
+            this.trackBarExMoveMul.Val = 5D;
             // 
             // checkBoxDeSpeckle
             // 
