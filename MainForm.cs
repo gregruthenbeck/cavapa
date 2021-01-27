@@ -114,7 +114,8 @@ namespace cavapa
 
         private void TryParseArg(string arg) {
             try {
-                if (!File.Exists(arg))
+                // Check the provided path, and also check for the file in the same folder as the video
+                if (!File.Exists(arg) && !File.Exists(Path.GetDirectoryName(_videoFilepath) + "\\" + arg))
                     return;
                 string ext = Path.GetExtension(arg).ToLower();
                 if (ext == ".txt" || ext == ".cfg") {
@@ -182,6 +183,7 @@ namespace cavapa
                 Thread.Sleep(500);
             }
 
+            _videoFilepath = filepath;
             string fname = Path.GetFileName(filepath);
             this.Text = "CAVAPA: " + fname + " v" + _version.ToString();
             statusLabel.Text = fname;
@@ -869,6 +871,8 @@ namespace cavapa
         private void LoadSettings(string filepath) {
             try {
                 _processingSleep = true;
+                if (!File.Exists(filepath)) // if not found, prepend the default folder
+                    filepath = Path.GetDirectoryName(_videoFilepath) + "\\" + filepath;
                 _settingsControl.LoadSettings(filepath);
             } catch {
             } finally {
