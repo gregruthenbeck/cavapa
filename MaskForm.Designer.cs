@@ -207,6 +207,7 @@ namespace cavapa
             this.Controls.Add(this.splitContainer1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MaskForm";
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.Text = "CAVAPA: Edit Frame Mask";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MaskForm_FormClosing);
             this.Load += new System.EventHandler(this.MaskForm_Load);

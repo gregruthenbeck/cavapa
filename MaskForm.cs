@@ -33,12 +33,11 @@ namespace cavapa
                 background = value;
                 mask = new Bitmap(value.Width, value.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                 bmp = new Bitmap(value.Width, value.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                if (value.Height < 1080)
-                {
+                if (value.Height < 720) {
+                    initScale = new SizeF(3f, 3f);
+                } else if (value.Height < 1080) {
                     initScale = new SizeF(1.5f, 1.5f);
-                }
-                else
-                {
+                } else {
                     initScale = new SizeF(1, 1);
                 }
                 pictureBox1.Size = new Size((int)(initScale.Width * (float)value.Width),
