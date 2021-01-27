@@ -148,8 +148,25 @@ namespace cavapa
             var menuItem = sender as ToolStripMenuItem;
             string idStr = menuItem.Text.Split(new char[] { ' ' })[0].Replace("&","");
             int id = 0;
-            if (int.TryParse(idStr, out id))
-                OpenVideo(Properties.Settings.Default.RecentVideoFilePaths[id-1]);
+            if (int.TryParse(idStr, out id)) {
+                string videoFpath = Properties.Settings.Default.RecentVideoFilePaths[id - 1];
+                OpenVideo(videoFpath);
+                OfferToOpenMask(videoFpath);
+            }
+        }
+
+        private void OfferToOpenMask(string videoFpath) {
+            try {
+                _processingSleep = true;
+                string maskFpath = Path.GetDirectoryName(videoFpath) + "\\" + Path.GetFileNameWithoutExtension(videoFpath) + "-mask.png";
+                if (File.Exists(maskFpath)) {
+                    if (MessageBox.Show("Import mask?\n" + Path.GetFileName(maskFpath), "Mask Found", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.OK) {
+                        _mask = new Image<Gray, byte>(maskFpath);
+                    }
+                }
+            } finally {
+                _processingSleep = false;
+            }
         }
 
         private void OpenVideo(string filepath)
@@ -676,17 +693,17 @@ namespace cavapa
             }
         }
 
-        private void openVideoToolStripMenuItem_Click(object sender, EventArgs e)
-        {
+        private void openVideoToolStripMenuItem_Click(object sender, EventArgs e) {
             _processingEnabled = false;
 
             OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "Video files (avi,mov,mp4,mpg,mpeg,mkv,mts,wmv)|*.avi;" + 
-                "*.Avi;*.AVI;*.mov;*.Mov;*.MOV;*.mp4;*.Mp4;*.MP4;*.mpg;*.Mpg;*.MPG;" + 
+            ofd.Filter = "Video files (avi,mov,mp4,mpg,mpeg,mkv,mts,wmv)|*.avi;" +
+                "*.Avi;*.AVI;*.mov;*.Mov;*.MOV;*.mp4;*.Mp4;*.MP4;*.mpg;*.Mpg;*.MPG;" +
                 "*.mpeg;*.Mpeg;*.MPEG;*.mkv;*.Mkv;*.MKV;*.mts;*.Mts;*.MTS;*.wmv;*.Wmv;*.WMV|" +
                 "All files (*.*)|*.*";
             if (ofd.ShowDialog() == DialogResult.OK) {
                 OpenVideo(ofd.FileName);
+                OfferToOpenMask(ofd.FileName);
             }
         }
 
