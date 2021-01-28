@@ -2,6 +2,8 @@
 
 A Windows 10 GUI application that computes a measurement of movement (physical activity). Select a video file and a CSV file containing the motion measurement is generated.
 
+![CAVAPA Screenshot](https://cavapa.ruthenbeck.io/images/cavapa2.png)
+
 <https://cavapa.ruthenbeck.io>
 
 <https://github.com/gregruthenbeck/cavapa>
