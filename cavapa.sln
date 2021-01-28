@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.30503.244
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cavapa", "cavapa.csproj", "{C8AFDAE6-E9AC-47E4-8DEC-99F16F05E6A1}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "CavapaInstaller", "..\CavapaInstaller\CavapaInstaller.vdproj", "{724DD7DE-B55E-4C8A-827D-B849067059D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{C8AFDAE6-E9AC-47E4-8DEC-99F16F05E6A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8AFDAE6-E9AC-47E4-8DEC-99F16F05E6A1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C8AFDAE6-E9AC-47E4-8DEC-99F16F05E6A1}.Release|x64.ActiveCfg = Release|Any CPU
+		{724DD7DE-B55E-4C8A-827D-B849067059D8}.Debug|Any CPU.ActiveCfg = Debug
+		{724DD7DE-B55E-4C8A-827D-B849067059D8}.Debug|x64.ActiveCfg = Debug
+		{724DD7DE-B55E-4C8A-827D-B849067059D8}.Release|Any CPU.ActiveCfg = Release
+		{724DD7DE-B55E-4C8A-827D-B849067059D8}.Release|x64.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
