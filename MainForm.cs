@@ -73,17 +73,6 @@ namespace cavapa
             // shorten the bright-green glow-trail of movements (default is 0.9)
             _settingsControl = new SettingsControl();
             _settingsControl.MovementHistoryDecay = 0.85; 
-            //processSettings.frameBlendCount = 2;
-            //processSettings.movementMultiplier = 20.0;
-
-            // Test BGBuilder
-            //foreach (var f in Directory.GetFiles(".", "bg*.jpg"))
-            //    File.Delete(f);
-            //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../CameraB_cut.mp4");
-            //var bgb = new BGBuilder(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, "../../../kilp_2011_8_22-10-koris-deint.mp4");
-
-            //enableFlickerReductionToolStripMenuItem.Checked = (_processSettings.frameBlendCount > 1);
-            //enableShadowReductionToolStripMenuItem.Checked = _settingsControl.EnableShadowReduction;
 
             this.tableLayoutPanel1.RowCount = 4;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 120F));

@@ -143,9 +143,9 @@ namespace cavapa
             this.trackBarExNoiseThresh.Name = "trackBarExNoiseThresh";
             this.trackBarExNoiseThresh.Size = new System.Drawing.Size(577, 40);
             this.trackBarExNoiseThresh.TabIndex = 1;
-            this.trackBarExNoiseThresh.Val = 0.7D;
             this.trackBarExNoiseThresh.ValMax = 10D;
             this.trackBarExNoiseThresh.ValMin = 0D;
+            this.trackBarExNoiseThresh.Val = 0.7D;
             // 
             // trackBarExMoveScoreMul
             // 
@@ -157,9 +157,9 @@ namespace cavapa
             this.trackBarExMoveScoreMul.Name = "trackBarExMoveScoreMul";
             this.trackBarExMoveScoreMul.Size = new System.Drawing.Size(577, 40);
             this.trackBarExMoveScoreMul.TabIndex = 2;
-            this.trackBarExMoveScoreMul.Val = 0.001D;
             this.trackBarExMoveScoreMul.ValMax = 100000D;
             this.trackBarExMoveScoreMul.ValMin = 1E-07D;
+            this.trackBarExMoveScoreMul.Val = 0.001D;
             // 
             // trackBarExMoveMul
             // 

@@ -76,6 +76,8 @@ namespace cavapa
             // 
             this.trackBar1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.trackBar1.Location = new System.Drawing.Point(183, 3);
+            this.trackBar1.Maximum = 10000;
+            this.trackBar1.Minimum = -1000;
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(261, 39);
             this.trackBar1.TabIndex = 2;
