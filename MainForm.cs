@@ -226,7 +226,7 @@ namespace cavapa
             Task.Run(() =>
             {
                 Console.WriteLine("Task={0}, Thread={1}", Task.CurrentId, Thread.CurrentThread.ManagedThreadId);
-                ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, filepath, 0, 0, _videoFrameCount - 1);
+                ProcessFrames(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2, filepath, 0, _videoFrameCount - 1);
             });
         }
 
@@ -320,7 +320,7 @@ namespace cavapa
             ffmpeg.av_log_set_callback(logCallback);
         }
 
-        private unsafe void ProcessFrames(AVHWDeviceType HWDevice, string url, int chunkId = 0, long startFrame = 0, long endFrame = long.MaxValue)
+        private unsafe void ProcessFrames(AVHWDeviceType HWDevice, string url, long startFrame = 0, long endFrame = long.MaxValue)
         {
             _videoFilepath = url;
             _processingEnabled = true;
