@@ -37,7 +37,7 @@ namespace cavapa
         long _processedFrameCount = 0L;
         long _frameNumber = 0L;
 
-        Image<Gray, byte> _movement;
+        Image<Gray, float> _movement;
         Image<Gray, byte> _movementHist;
         bool _maskSet = true;
         Image<Gray, byte> _mask = null;
@@ -72,7 +72,9 @@ namespace cavapa
 
             // shorten the bright-green glow-trail of movements (default is 0.9)
             _settingsControl = new SettingsControl();
-            _settingsControl.MovementHistoryDecay = 0.85; 
+            _settingsControl.MovementHistoryDecay = 0.5;
+            _settingsControl.MovementPixMul = 100.0;
+            _settingsControl.MovementNoiseFloor = 5.0;
 
             this.tableLayoutPanel1.RowCount = 4;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 120F));
@@ -220,7 +222,7 @@ namespace cavapa
 
             var width = videoInfo.width;
             var height = videoInfo.height;
-            _movement = new Image<Gray, byte>(width, height);
+            _movement = new Image<Gray, float>(width, height);
             _movementHist = new Image<Gray, byte>(width, height);
 
             Task.Run(() =>
@@ -367,8 +369,9 @@ namespace cavapa
                     //    bgs[i] = new Bitmap(width, height, PixelFormat.Format32bppArgb);
                     //}
                     //FrameBlender frameSmoother = new FrameBlender(width, height, _processSettings.frameBlendCount);
-                    Image<Bgra, byte> background = null;
-                    var bgBuilder = new Emgu.CV.BackgroundSubtractorMOG2(250, 16, false);
+                    Image<Bgra, float> background = null;
+                    //var bgBuilder = new Emgu.CV.BackgroundSubtractorMOG2(500, 16, false);
+                    var bgBuilder = new Emgu.CV.BackgroundSubtractorKNN(500, 4.0, false);
                     Image<Gray, byte> foregroundMask = new Image<Gray, byte>(width, height);
                     var currForeground = new Image<Bgr, byte>(width, height);
                     var prevForeground = new Image<Bgr, byte>(width, height);
@@ -443,13 +446,16 @@ namespace cavapa
 
                         bgBuilder.Apply(currImage, foregroundMask);
                         if (_frameNumber == 0L)
-                            background = currImage.Convert<Bgra, byte>();
+                            background = currImage.Convert<Bgra, float>();
                         else
                         {
-                            Image<Bgra, byte> newBg = currImage.Convert<Bgra, byte>();
+                            Image<Bgra, float> newBg = currImage.Convert<Bgra, float>();
                             newBg[3].SetValue(1, foregroundMask.Not());
                             background[3].SetValue(1);
-                            background = (background.Mat * .95 + newBg.Mat * .05).ToImage<Bgra, byte>();
+                            background = (background.Mat * .97 + newBg.Mat * .03).ToImage<Bgra, float>();
+
+                            //var picMI = new MethodInvoker(() => pictureBox1.Image = background.ToBitmap());
+                            //pictureBox1.Invoke(picMI);
                         }
 
                         if (leadInFrames > 4L)
@@ -468,7 +474,10 @@ namespace cavapa
                         //currForeground = currImage.Copy(foregroundMask.Not());
 
                         Mat moveMat = currForeground.Mat - prevForeground.Mat;
-                        _movement = ((moveMat - _settingsControl.MovementNoiseFloor) * _settingsControl.MovementPixMul).ToImage<Bgr, byte>().Convert<Gray,byte>();
+                        _movement = (1.02 * (_movement.Mat * 0.85 + 0.15 * ((moveMat - _settingsControl.MovementNoiseFloor) * _settingsControl.MovementPixMul).ToImage<Bgr, byte>().Convert<Gray,float>().Mat)).ToImage<Gray,float>();
+
+                        //var picMI = new MethodInvoker(() => pictureBox1.Image = _movement.ToBitmap());
+                        //pictureBox1.Invoke(picMI);
 
                         if (_mask != null)
                             _movement = _movement.Copy(_mask);
@@ -485,7 +494,22 @@ namespace cavapa
                             // https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings
                             statusLabel.Text = $"{time:hh\\:mm\\:ss}";
                             statusProcessingRate.Text = $"Processing@{ processingRate: 0.0}x";
-                            var moveScore = _movement.GetSum().Intensity * _settingsControl.MovementScoreMul;
+                            //var moveScore = _movement.GetSum().Intensity * _settingsControl.MovementScoreMul;
+
+                            // *** Do perspective correction to movement score
+                            var moveScore = 0.0;
+                            for (int yi = 0; yi != _movement.Height; ++yi)
+                            {
+                                // Assume that a foreground person is 2x taller than a background person
+                                double pc = 1.0 - ((double)yi / (double)_movement.Height); // 0..1, bottom..top
+                                pc = 0.5 + 0.5 * pc; // 0.5..1.0, bottom..top
+                                pc *= 2.0; // foreground person is 2x the height of background person
+                                pc *= pc; // squared since movement~area
+                                Rectangle rowRect = new Rectangle(0, yi, _movement.Width, 1);
+                                Image<Gray, float> row = _movement.GetSubRect(rowRect);
+                                moveScore += row.GetSum().Intensity * _settingsControl.MovementScoreMul * pc;
+                            }
+
                             if (framesSinceSeek == framesSinceSeekThresh)
                             {
                                 if (_frameNumber < _movementScores.Length)
@@ -535,11 +559,12 @@ namespace cavapa
         private void UpdateProcessMainView(Mat currImageMat) 
         {
             _movementHist = (_movementHist.Mat * _settingsControl.MovementHistoryDecay).ToImage<Gray, byte>();
-            _movementHist = (_movementHist.Mat + _movement.Mat).ToImage<Gray, byte>();
+            _movementHist = (_movementHist.Mat + _movement.Convert<Gray, byte>().Mat).ToImage<Gray, byte>();
 
             Image<Bgr, byte> moveImg = _movementHist.Convert<Bgr, byte>();
-            moveImg[0] = new Image<Gray, byte>(_movementHist.Width, _movementHist.Height); // Make the blue-channel zero
-            moveImg[2] = new Image<Gray, byte>(_movementHist.Width, _movementHist.Height); // Make the red-channel zero
+            //moveImg[0] = new Image<Gray, byte>(_movementHist.Width, _movementHist.Height); // Make the blue-channel zero
+            moveImg[1] = new Image<Gray, byte>(_movementHist.Width, _movementHist.Height); // Make the green-channel zero
+            //moveImg[2] = new Image<Gray, byte>(_movementHist.Width, _movementHist.Height); // Make the red-channel zero
 
             try
             {
